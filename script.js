@@ -24,7 +24,8 @@
   };
 
   const tanggalSuratEl = document.getElementById("tanggalSurat");
-  if (!tanggalSuratEl.value) tanggalSuratEl.value = todayISO();
+  // biarkan kosong, user yang tentukan
+
 
   function formatTanggalIndonesia(isoDate) {
     const [y, m, d] = isoDate.split("-").map(Number);
@@ -87,7 +88,7 @@
     const required = [
       "namaPelamar","tempatLahir","tglLahir","pendidikan",
       "alamatPelamar","email","telepon",
-      "kotaSurat","tanggalSurat","namaPT","posisi","template","mode"
+      "namaPT","posisi","template","mode"
     ];
     for (const k of required) {
       if (!d[k]) throw new Error(`Mohon lengkapi field: ${k}`);
@@ -151,17 +152,28 @@
   function buildLetterLines(d) {
     const tglSurat = formatTanggalIndonesia(d.tanggalSurat);
 
-    const header = [
-      `${d.kotaSurat}, ${tglSurat}`,
-      ``,
-      `Perihal : Lamaran Pekerjaan`,
-      ``,
-      `Kepada Yth,`,
-      `${d.namaPT}`,
-      ...(d.lokasiPT ? [d.lokasiPT] : []),
-      `Di tempat`,
-      ``,
-    ];
+    const headerTanggal = [];
+
+if (d.kotaSurat && d.tanggalSurat) {
+  headerTanggal.push(`${d.kotaSurat}, ${formatTanggalIndonesia(d.tanggalSurat)}`);
+} else if (d.tanggalSurat) {
+  headerTanggal.push(formatTanggalIndonesia(d.tanggalSurat));
+} else if (d.kotaSurat) {
+  headerTanggal.push(d.kotaSurat);
+}
+
+const header = [
+  ...headerTanggal,
+  ...(headerTanggal.length ? [""] : []),
+  `Perihal : Lamaran Pekerjaan`,
+  ``,
+  `Kepada Yth,`,
+  `${d.namaPT}`,
+  ...(d.lokasiPT ? [d.lokasiPT] : []),
+  `Di tempat`,
+  ``,
+];
+
 
     const body = (TEMPLATES[d.template] ? TEMPLATES[d.template](d) : TEMPLATES.formal(d));
 
@@ -190,9 +202,6 @@
       `Demikian surat lamaran kerja ini saya sampaikan. Atas perhatian Bapak/Ibu, saya ucapkan terima kasih.`,
       ``,
       `Hormat saya,`,
-      ``,
-      ``,
-      ``,
       `${d.namaPelamar}`,
     ];
 
