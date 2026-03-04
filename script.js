@@ -15,14 +15,33 @@
   const clearBtn = document.getElementById("clearTtd");
 
   function resizeCanvas() {
-    const ratio = window.devicePixelRatio || 1;
-    canvas.width = canvas.offsetWidth * ratio;
-    canvas.height = canvas.offsetHeight * ratio;
-    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+  const ratio = window.devicePixelRatio || 1;
+
+  // Simpan gambar lama dulu
+  const oldData = canvas.toDataURL();
+
+  canvas.width = canvas.offsetWidth * ratio;
+  canvas.height = canvas.offsetHeight * ratio;
+
+  ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+  ctx.lineWidth = 2;
+  ctx.lineCap = "round";
+  ctx.strokeStyle = "#000";
+
+  // Restore gambar lama
+  if (oldData !== "data:,") {
+    const img = new Image();
+    img.onload = () => {
+      ctx.drawImage(img, 0, 0, canvas.width / ratio, canvas.height / ratio);
+    };
+    img.src = oldData;
   }
+}
 
   resizeCanvas();
-  window.addEventListener("resize", resizeCanvas);
+  window.addEventListener("orientationchange", () => {
+  setTimeout(resizeCanvas, 300);
+});
 
   ctx.lineWidth = 2;
   ctx.lineCap = "round";
