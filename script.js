@@ -1,33 +1,87 @@
 (() => {
+
   const form = document.getElementById("formLamaran");
   const previewArea = document.getElementById("previewArea");
-  const badgeStatus = document.getElementById("badgeStatus");
   const btnPreview = document.getElementById("btnPreview");
+  const badgeStatus = document.getElementById("badgeStatus");
   document.getElementById("year").textContent = new Date().getFullYear();
 
-  const includeCV = document.getElementById("includeCV");
-  const includePasFoto = document.getElementById("includePasFoto");
-  const includeSKCK = document.getElementById("includeSKCK");
+  // =========================
+  // SIGNATURE CANVAS
+  // =========================
 
-  const fileCV = document.getElementById("fileCV");
-  const filePasFoto = document.getElementById("filePasFoto");
-  const fileSKCK = document.getElementById("fileSKCK");
-  const filePendukung = document.getElementById("filePendukung");
-  const berkasPendukungText = document.getElementById("berkasPendukungText");
+  const canvas = document.getElementById("signaturePad");
+  const ctx = canvas.getContext("2d");
+  const clearBtn = document.getElementById("clearTtd");
 
-  const todayISO = () => {
-    const d = new Date();
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, "0");
-    const dd = String(d.getDate()).padStart(2, "0");
-    return `${yyyy}-${mm}-${dd}`;
-  };
+  function resizeCanvas() {
+    const ratio = window.devicePixelRatio || 1;
+    canvas.width = canvas.offsetWidth * ratio;
+    canvas.height = canvas.offsetHeight * ratio;
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+  }
 
-  const tanggalSuratEl = document.getElementById("tanggalSurat");
-  // biarkan kosong, user yang tentukan
+  resizeCanvas();
+  window.addEventListener("resize", resizeCanvas);
 
+  ctx.lineWidth = 2;
+  ctx.lineCap = "round";
+  ctx.strokeStyle = "#000";
+
+  let drawing = false;
+
+  function getPosition(e) {
+    const rect = canvas.getBoundingClientRect();
+    if (e.touches) {
+      return {
+        x: e.touches[0].clientX - rect.left,
+        y: e.touches[0].clientY - rect.top
+      };
+    }
+    return {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    };
+  }
+
+  function startDraw(e) {
+    drawing = true;
+    const pos = getPosition(e);
+    ctx.beginPath();
+    ctx.moveTo(pos.x, pos.y);
+  }
+
+  function draw(e) {
+    if (!drawing) return;
+    e.preventDefault();
+    const pos = getPosition(e);
+    ctx.lineTo(pos.x, pos.y);
+    ctx.stroke();
+  }
+
+  function endDraw() {
+    drawing = false;
+  }
+
+  canvas.addEventListener("mousedown", startDraw);
+  canvas.addEventListener("mousemove", draw);
+  canvas.addEventListener("mouseup", endDraw);
+  canvas.addEventListener("mouseleave", endDraw);
+
+  canvas.addEventListener("touchstart", startDraw, { passive: false });
+  canvas.addEventListener("touchmove", draw, { passive: false });
+  canvas.addEventListener("touchend", endDraw);
+
+  clearBtn.addEventListener("click", () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  });
+
+  // =========================
+  // UTIL
+  // =========================
 
   function formatTanggalIndonesia(isoDate) {
+    if (!isoDate) return "";
     const [y, m, d] = isoDate.split("-").map(Number);
     const bulan = [
       "Januari","Februari","Maret","April","Mei","Juni",
@@ -37,369 +91,322 @@
   }
 
   function sanitizeFileName(name) {
-    return String(name)
-      .trim()
-      .replace(/[\\/:*?"<>|]+/g, "-")
-      .replace(/\s+/g, " ")
-      .slice(0, 90);
+    return name.replace(/[\\/:*?"<>|]+/g, "-");
   }
 
   function escapeHtml(str) {
-    return String(str)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
+    return str.replace(/</g,"&lt;").replace(/>/g,"&gt;");
   }
 
-  function fileExt(name = "") {
-    const idx = name.lastIndexOf(".");
-    return idx >= 0 ? name.slice(idx + 1).toLowerCase() : "";
-  }
-
-  function splitLampiranText(input) {
-    return String(input || "")
-      .split(",")
-      .map(s => s.trim())
-      .filter(Boolean);
+  function formatIdentitasBlock(pairs) {
+    const max = Math.max(...pairs.map(p => p[0].length));
+    return pairs.map(([l,v]) => `${l.padEnd(max)} : ${v}`);
   }
 
   function getFormData() {
-    const d = {
-      namaPelamar: document.getElementById("namaPelamar").value.trim(),
-      tempatLahir: document.getElementById("tempatLahir").value.trim(),
-      tglLahir: document.getElementById("tglLahir").value,
-      pendidikan: document.getElementById("pendidikan").value.trim(),
-      alamatPelamar: document.getElementById("alamatPelamar").value.trim(),
-      email: document.getElementById("email").value.trim(),
-      telepon: document.getElementById("telepon").value.trim(),
-
-      kotaSurat: document.getElementById("kotaSurat").value.trim(),
-      tanggalSurat: document.getElementById("tanggalSurat").value,
-      namaPT: document.getElementById("namaPT").value.trim(),
-      lokasiPT: document.getElementById("lokasiPT").value.trim(),
-      posisi: document.getElementById("posisi").value.trim(),
-
-      template: document.getElementById("template").value,
-      mode: document.getElementById("modeEkspor").value,
+    return {
+      namaPelamar: namaPelamar.value.trim(),
+      tempatLahir: tempatLahir.value.trim(),
+      tglLahir: tglLahir.value,
+      pendidikan: pendidikan.value.trim(),
+      alamatPelamar: alamatPelamar.value.trim(),
+      email: email.value.trim(),
+      telepon: telepon.value.trim(),
+      kotaSurat: kotaSurat.value.trim(),
+      tanggalSurat: tanggalSurat.value,
+      namaPT: namaPT.value.trim(),
+      lokasiPT: lokasiPT.value.trim(),
+      posisi: posisi.value.trim(),
+      template: template.value,
+      mode: modeEkspor.value
     };
-
-    const required = [
-      "namaPelamar","tempatLahir","tglLahir","pendidikan",
-      "alamatPelamar","email","telepon",
-      "namaPT","posisi","template","mode"
-    ];
-    for (const k of required) {
-      if (!d[k]) throw new Error(`Mohon lengkapi field: ${k}`);
-    }
-    return d;
   }
 
-  // ===== Templates (tanpa kalimat lampiran) =====
+  // =========================
+  // TEMPLATES
+  // =========================
+
   const TEMPLATES = {
-    formal: (d) => ([
-      `Dengan hormat,`,
-      ``,
-      `Saya yang bertanda tangan di bawah ini:`,
-      `Nama : ${d.namaPelamar}`,
-      `Tempat/Tanggal Lahir : ${d.tempatLahir}, ${formatTanggalIndonesia(d.tglLahir)}`,
-      `Pendidikan Terakhir : ${d.pendidikan}`,
-      `Alamat : ${d.alamatPelamar}`,
-      `Email : ${d.email}`,
-      `No. HP : ${d.telepon}`,
-      ``,
-      `Dengan ini mengajukan permohonan untuk melamar pekerjaan di ${d.namaPT} sebagai ${d.posisi}.`,
-      `Saya memiliki motivasi kerja yang tinggi, mampu bekerja secara individu maupun tim, serta siap`,
-      `bekerja dengan disiplin dan bertanggung jawab untuk mendukung target perusahaan.`,
-      ``,
-      `Besar harapan saya untuk dapat diberikan kesempatan mengikuti proses seleksi lebih lanjut.`,
-    ]),
 
-    operator: (d) => ([
-      `Dengan hormat,`,
-      ``,
-      `Saya yang bertanda tangan di bawah ini:`,
-      `Nama : ${d.namaPelamar}`,
-      `Tempat/Tanggal Lahir : ${d.tempatLahir}, ${formatTanggalIndonesia(d.tglLahir)}`,
-      `Pendidikan Terakhir : ${d.pendidikan}`,
-      `Alamat : ${d.alamatPelamar}`,
-      `Email : ${d.email}`,
-      `No. HP : ${d.telepon}`,
-      ``,
-      `Dengan ini saya mengajukan lamaran kerja untuk posisi ${d.posisi} di ${d.namaPT}.`,
-      `Saya terbiasa bekerja dengan teliti, mengikuti SOP, menjaga kualitas, serta siap bekerja`,
-      `dengan sistem shift/lembur sesuai kebutuhan perusahaan.`,
-      ``,
-      `Saya siap mengikuti interview/tes sesuai jadwal yang ditentukan perusahaan.`,
-    ]),
+    formal: (d) => {
+      const identitas = formatIdentitasBlock([
+        ["Nama", d.namaPelamar],
+        ["Tempat/Tanggal Lahir", `${d.tempatLahir}, ${formatTanggalIndonesia(d.tglLahir)}`],
+        ["Pendidikan Terakhir", d.pendidikan],
+        ["Alamat", d.alamatPelamar],
+        ["Email", d.email],
+        ["No. HP", d.telepon],
+      ]);
 
-    fresh: (d) => ([
-      `Dengan hormat,`,
-      ``,
-      `Perkenalkan, saya ${d.namaPelamar} (${d.tempatLahir}, ${formatTanggalIndonesia(d.tglLahir)}),`,
-      `lulusan ${d.pendidikan}. Saya bermaksud melamar posisi ${d.posisi} di ${d.namaPT}.`,
-      ``,
-      `Saya memiliki kemauan belajar yang tinggi, cepat beradaptasi, serta mampu bekerja dengan`,
-      `komunikasi yang baik. Saya siap bekerja keras, berorientasi target, dan terus berkembang.`,
-      ``,
-      `Kontak saya: ${d.telepon} | ${d.email}`,
-      ``,
-      `Saya berharap dapat diberikan kesempatan untuk mengikuti tahapan seleksi selanjutnya.`,
-    ]),
+      return [
+        "Dengan hormat,",
+        "",
+        "Saya yang bertanda tangan di bawah ini:",
+        ...identitas,
+        "",
+        `Dengan ini mengajukan permohonan untuk melamar pekerjaan di ${d.namaPT} sebagai ${d.posisi}.`,
+        "Saya memiliki motivasi kerja yang tinggi, disiplin, dan mampu bekerja secara individu maupun tim.",
+        "",
+        "Besar harapan saya untuk dapat mengikuti proses seleksi lebih lanjut."
+      ];
+    },
+
+    operator: (d) => {
+      const identitas = formatIdentitasBlock([
+        ["Nama", d.namaPelamar],
+        ["Tempat/Tanggal Lahir", `${d.tempatLahir}, ${formatTanggalIndonesia(d.tglLahir)}`],
+        ["Pendidikan Terakhir", d.pendidikan],
+        ["Alamat", d.alamatPelamar],
+        ["Email", d.email],
+        ["No. HP", d.telepon],
+      ]);
+
+      return [
+        "Dengan hormat,",
+        "",
+        "Saya yang bertanda tangan di bawah ini:",
+        ...identitas,
+        "",
+        `Dengan ini saya mengajukan lamaran kerja untuk posisi ${d.posisi} di ${d.namaPT}.`,
+        "Saya terbiasa bekerja mengikuti SOP, menjaga kualitas, dan siap bekerja dengan sistem shift.",
+        "",
+        "Saya siap mengikuti proses interview sesuai jadwal yang ditentukan."
+      ];
+    },
+
+    operatoraja: (d) => {
+      const identitas = formatIdentitasBlock([
+        ["Nama", d.namaPelamar],
+        ["Tempat/Tanggal Lahir", `${d.tempatLahir}, ${formatTanggalIndonesia(d.tglLahir)}`],
+        ["Pendidikan Terakhir", d.pendidikan],
+        ["Alamat", d.alamatPelamar],
+      ]);
+
+      return [
+        "Dengan hormat,",
+        "",
+        `Berdasarkan informasi lowongan kerja yang saya peroleh pada tanggal ${formatTanggalIndonesia(d.tanggalSurat)}, bahwa perusahaan yang Bapak/Ibu pimpin membutuhkan tenaga kerja sebagai ${d.posisi}, dengan ini saya mengajukan lamaran.`,
+        ...identitas,
+        "",
+        `Mengajukan permohonan untuk menjadi tenaga kerja di ${d.namaPT} sebagai ${d.posisi}.`
+      ];
+    },
+
+    fresh: (d) => [
+      "Dengan hormat,",
+      "",
+      `Perkenalkan, saya ${d.namaPelamar} (${d.tempatLahir}, ${formatTanggalIndonesia(d.tglLahir)}), lulusan ${d.pendidikan}.`,
+      `Saya bermaksud melamar posisi ${d.posisi} di ${d.namaPT}.`,
+      "",
+      "Saya memiliki kemauan belajar yang tinggi, cepat beradaptasi, dan siap berkembang bersama perusahaan.",
+      "",
+      `Kontak saya: ${d.telepon} | ${d.email}`
+    ]
   };
 
-  function buildLetterLines(d) {
-    const tglSurat = formatTanggalIndonesia(d.tanggalSurat);
+  // =========================
+  // PREVIEW
+  // =========================
 
-    const headerTanggal = [];
+  function buildPreview(d) {
 
-if (d.kotaSurat && d.tanggalSurat) {
-  headerTanggal.push(`${d.kotaSurat}, ${formatTanggalIndonesia(d.tanggalSurat)}`);
-} else if (d.tanggalSurat) {
-  headerTanggal.push(formatTanggalIndonesia(d.tanggalSurat));
-} else if (d.kotaSurat) {
-  headerTanggal.push(d.kotaSurat);
-}
-
-const header = [
-  ...headerTanggal,
-  ...(headerTanggal.length ? [""] : []),
-  `Perihal : Lamaran Pekerjaan`,
-  ``,
-  `Kepada Yth,`,
-  `${d.namaPT}`,
-  ...(d.lokasiPT ? [d.lokasiPT] : []),
-  `Di tempat`,
-  ``,
-];
-
-
-    const body = (TEMPLATES[d.template] ? TEMPLATES[d.template](d) : TEMPLATES.formal(d));
-
-    // Lampiran text list (untuk surat)
-    const lampiran = [];
-
-    if (includeCV.checked) lampiran.push("Curriculum Vitae (CV)");
-    if (includePasFoto.checked) lampiran.push("Pas Foto");
-    if (includeSKCK.checked) lampiran.push("SKCK");
-
-    lampiran.push(...splitLampiranText(berkasPendukungText.value));
-
-    // Deduplicate
-    const uniq = [];
-    const seen = new Set();
-    for (const item of lampiran) {
-      const key = item.toLowerCase();
-      if (!seen.has(key)) {
-        seen.add(key);
-        uniq.push(item);
-      }
-    }
-
-    const closing = [
-      ``,
-      `Demikian surat lamaran kerja ini saya sampaikan. Atas perhatian Bapak/Ibu, saya ucapkan terima kasih.`,
-      ``,
-      `Hormat saya,`,
-      `${d.namaPelamar}`,
+    const header = [
+      d.kotaSurat && d.tanggalSurat
+        ? `${d.kotaSurat}, ${formatTanggalIndonesia(d.tanggalSurat)}`
+        : "",
+      "",
+      "Perihal : Lamaran Pekerjaan",
+      "",
+      "Kepada Yth,",
+      d.namaPT,
+      d.lokasiPT || "",
+      "Di tempat",
+      ""
     ];
 
-    // Kalau ada lampiran -> tambahkan teks khusus
-    if (uniq.length > 0) {
-      const list = uniq.map((b, i) => `${i + 1}. ${b}`);
-      return header.concat(body).concat([
-        ``,
-        `Sebagai bahan pertimbangan, saya lampirkan berkas lamaran sebagai berikut:`,
-        ...list,
-      ]).concat(closing);
-    }
+    const closing = [
+      "",
+      "Hormat saya,",
+      d.namaPelamar
+    ];
 
-    // Kalau tidak ada -> jangan tampilkan teks lampiran
-    return header.concat(body).concat(closing);
+    return header.concat(TEMPLATES[d.template](d)).concat(closing);
   }
 
   function renderPreview(lines) {
     previewArea.innerHTML = `<pre>${escapeHtml(lines.join("\n"))}</pre>`;
-    badgeStatus.textContent = "Preview siap";
   }
 
-  function makeFileName(d) {
-    return sanitizeFileName(`Lamaran - ${d.namaPelamar} - ${d.namaPT} - ${d.posisi}`);
-  }
+  // =========================
+  // EXPORT PDF
+  // =========================
 
-  // ===== Generate letter PDF bytes (jsPDF) =====
-  async function generateLetterPdfBytes(lines) {
+  async function exportPDF(d, fileName) {
+
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ unit: "mm", format: "a4" });
 
-    const marginLeft = 20;
-    const marginTop = 20;
+    const marginLeft = 25;
+    const marginRight = 25;
+    const marginTop = 30;
+    const marginBottom = 30;
+
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
-    const maxWidth = pageWidth - marginLeft * 2;
 
-    doc.setFont("times", "normal");
+    doc.setFont("courier", "normal");
     doc.setFontSize(12);
 
+    if (d.kotaSurat && d.tanggalSurat) {
+      doc.text(
+        `${d.kotaSurat}, ${formatTanggalIndonesia(d.tanggalSurat)}`,
+        pageWidth - marginRight,
+        marginTop - 10,
+        { align: "right" }
+      );
+    }
+
     let y = marginTop;
-    const lineHeight = 6.2;
+    const maxWidth = pageWidth - marginLeft - marginRight;
 
-    for (const rawLine of lines) {
-      const line = rawLine ?? "";
+    const header = [
+      "Perihal : Lamaran Pekerjaan",
+      "",
+      "Kepada Yth,",
+      d.namaPT,
+      d.lokasiPT || "",
+      "Di tempat",
+      ""
+    ];
+
+    const body = TEMPLATES[d.template](d);
+    const lines = header.concat(body);
+
+    lines.forEach(line => {
       const wrapped = doc.splitTextToSize(line, maxWidth);
-
-      for (const w of wrapped) {
-        if (y > pageHeight - marginTop) {
-          doc.addPage();
-          y = marginTop;
-          doc.setFont("times", "normal");
-          doc.setFontSize(12);
-        }
+      wrapped.forEach(w => {
         doc.text(w, marginLeft, y);
-        y += lineHeight;
-      }
-
-      if (line.trim() === "") y += 1.5;
-    }
-
-    return doc.output("arraybuffer");
-  }
-
-  async function appendPdf(pdfDoc, pdfBytes) {
-    const { PDFDocument } = window.PDFLib;
-    const src = await PDFDocument.load(pdfBytes);
-    const pages = await pdfDoc.copyPages(src, src.getPageIndices());
-    pages.forEach(p => pdfDoc.addPage(p));
-  }
-
-  async function addImageAsPage(pdfDoc, bytes, mimeType) {
-    const imgBytes = new Uint8Array(bytes);
-    let image;
-
-    if (mimeType === "image/png") image = await pdfDoc.embedPng(imgBytes);
-    else image = await pdfDoc.embedJpg(imgBytes);
-
-    const page = pdfDoc.addPage();
-    const { width, height } = page.getSize();
-
-    const margin = 36;
-    const maxW = width - margin * 2;
-    const maxH = height - margin * 2;
-
-    const scale = Math.min(maxW / image.width, maxH / image.height);
-    const drawW = image.width * scale;
-    const drawH = image.height * scale;
-
-    page.drawImage(image, {
-      x: (width - drawW) / 2,
-      y: (height - drawH) / 2,
-      width: drawW,
-      height: drawH
-    });
-  }
-
-  async function readFileBytes(file) {
-    return await file.arrayBuffer();
-  }
-
-  async function exportMergedPDF(lines, fileNameBase) {
-    const { PDFDocument } = window.PDFLib;
-    if (!PDFDocument) throw new Error("PDF merge library (pdf-lib) belum termuat.");
-
-    const letterBytes = await generateLetterPdfBytes(lines);
-
-    const master = await PDFDocument.create();
-    await appendPdf(master, letterBytes);
-
-    const attachments = [];
-
-    if (includeCV.checked && fileCV.files[0]) attachments.push(fileCV.files[0]);
-    if (includePasFoto.checked && filePasFoto.files[0]) attachments.push(filePasFoto.files[0]);
-    if (includeSKCK.checked && fileSKCK.files[0]) attachments.push(fileSKCK.files[0]);
-
-    for (const f of (filePendukung.files || [])) attachments.push(f);
-
-    for (const f of attachments) {
-      const bytes = await readFileBytes(f);
-      const ext = fileExt(f.name);
-      const type = f.type;
-
-      if (type === "application/pdf" || ext === "pdf") {
-        await appendPdf(master, bytes);
-        continue;
-      }
-
-      if (type === "image/jpeg" || type === "image/png" || ext === "jpg" || ext === "jpeg" || ext === "png") {
-        const mime = (type === "image/png" || ext === "png") ? "image/png" : "image/jpeg";
-        await addImageAsPage(master, bytes, mime);
-        continue;
-      }
-
-      console.warn("Tipe file tidak didukung untuk merge:", f.name, f.type);
-    }
-
-    const mergedBytes = await master.save();
-    const blob = new Blob([mergedBytes], { type: "application/pdf" });
-    saveAs(blob, `${fileNameBase}.pdf`);
-  }
-
-  async function exportDOCX(lines, fileNameBase) {
-    const docx = window.docx;
-    if (!docx) throw new Error("Library DOCX belum termuat. Cek koneksi internet/CDN.");
-
-    const { Document, Packer, Paragraph, TextRun } = docx;
-
-    const paragraphs = lines.map((line) => {
-      if (!line || line.trim() === "") return new Paragraph({ children: [new TextRun("")] });
-      return new Paragraph({
-        children: [new TextRun({ text: line, font: "Times New Roman", size: 24 })]
+        y += 6;
       });
+      if (line.trim() === "") y += 2;
     });
+
+    const bottomY = pageHeight - marginBottom;
+
+    const signatureHeight = 18;
+const spacingAfterHormat = 10;
+
+const startY = pageHeight - marginBottom - 40;
+
+// 1️⃣ Hormat saya (paling atas)
+doc.text("Hormat saya,", pageWidth - marginRight, startY, { align: "right" });
+
+// 2️⃣ Tanda tangan (di tengah)
+const signatureData = canvas.toDataURL("image/png");
+
+if (signatureData !== "data:,") {
+  doc.addImage(
+    signatureData,
+    "PNG",
+    pageWidth - marginRight - 40,
+    startY + 5,
+    35,
+    signatureHeight
+  );
+}
+
+// 3️⃣ Nama (paling bawah)
+doc.text(
+  d.namaPelamar,
+  pageWidth - marginRight,
+  startY + signatureHeight + 15,
+  { align: "right" }
+);
+
+    doc.save(`${fileName}.pdf`);
+  }
+
+  // =========================
+  // EXPORT DOCX
+  // =========================
+
+  async function exportDOCX(d, fileName) {
+
+    const { Document, Packer, Paragraph, TextRun, AlignmentType } = window.docx;
+
+    const children = [];
+
+    if (d.kotaSurat && d.tanggalSurat) {
+      children.push(new Paragraph({
+        alignment: AlignmentType.RIGHT,
+        children: [new TextRun(`${d.kotaSurat}, ${formatTanggalIndonesia(d.tanggalSurat)}`)]
+      }));
+    }
+
+    children.push(new Paragraph(""));
+
+    const header = [
+      "Perihal : Lamaran Pekerjaan",
+      "",
+      "Kepada Yth,",
+      d.namaPT,
+      d.lokasiPT || "",
+      "Di tempat",
+      ""
+    ];
+
+    header.forEach(line => children.push(new Paragraph(line)));
+    TEMPLATES[d.template](d).forEach(line => children.push(new Paragraph(line)));
+
+    children.push(new Paragraph(""));
+    children.push(new Paragraph({
+      alignment: AlignmentType.RIGHT,
+      children: [new TextRun("Hormat saya,")]
+    }));
+
+    children.push(new Paragraph(""));
+    children.push(new Paragraph({
+      alignment: AlignmentType.RIGHT,
+      children: [new TextRun(d.namaPelamar)]
+    }));
 
     const doc = new Document({
       sections: [{
-        properties: { page: { margin: { top: 1134, bottom: 1134, left: 1134, right: 1134 } } },
-        children: paragraphs
+        properties: {
+          page: {
+            margin: { top: 1700, bottom: 1700, left: 1700, right: 1700 }
+          }
+        },
+        children
       }]
     });
 
     const blob = await Packer.toBlob(doc);
-    saveAs(blob, `${fileNameBase}.docx`);
+    saveAs(blob, `${fileName}.docx`);
   }
 
+  // =========================
+  // EVENTS
+  // =========================
+
   btnPreview.addEventListener("click", () => {
-    try {
-      badgeStatus.textContent = "Memproses…";
-      const d = getFormData();
-      const lines = buildLetterLines(d);
-      renderPreview(lines);
-    } catch (err) {
-      badgeStatus.textContent = "Gagal";
-      previewArea.innerHTML = `<p class="muted">${escapeHtml(err.message || "Terjadi kesalahan.")}</p>`;
-    }
+    const d = getFormData();
+    renderPreview(buildPreview(d));
   });
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
-    try {
-      badgeStatus.textContent = "Membuat file…";
-      const d = getFormData();
-      const lines = buildLetterLines(d);
-      renderPreview(lines);
 
-      const fileNameBase = makeFileName(d);
+    const d = getFormData();
+    const fileName = sanitizeFileName(
+      `Lamaran - ${d.namaPelamar} - ${d.namaPT} - ${d.posisi}`
+    );
 
-      if (d.mode === "pdf") {
-        await exportMergedPDF(lines, fileNameBase);
-      } else {
-        await exportDOCX(lines, fileNameBase);
-      }
-
-      badgeStatus.textContent = "Selesai & terunduh";
-    } catch (err) {
-      badgeStatus.textContent = "Gagal";
-      previewArea.innerHTML = `<p class="muted">${escapeHtml(err.message || "Terjadi kesalahan.")}</p>`;
+    if (d.mode === "pdf") {
+      await exportPDF(d, fileName);
+    } else {
+      await exportDOCX(d, fileName);
     }
   });
+
 })();

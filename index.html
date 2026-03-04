@@ -85,12 +85,30 @@
             <input id="posisi" type="text" placeholder="Contoh: Admin Gudang" required />
           </div>
 
+          <div class="row">
+  <label>Tanda Tangan Digital</label>
+
+  <div class="ttd-box">
+    <canvas id="signaturePad"></canvas>
+  </div>
+
+  <div class="ttd-actions">
+    <button type="button" id="clearTtd" class="btn ghost small">Hapus</button>
+  </div>
+
+  <p class="mini muted">
+    Gunakan mouse atau sentuhan layar untuk menandatangani.
+    Tanda tangan akan otomatis ditempatkan di kanan bawah surat.
+  </p>
+</div>
+
           <hr class="sep" />
 
           <h2>Template</h2>
           <div class="row">
             <label for="template">Pilih template surat</label>
             <select id="template" required>
+              <option value="operatoraja" selected>Biasa</option>
               <option value="formal" selected>Formal (Umum)</option>
               <option value="operator">Operator Produksi / Pabrik</option>
               <option value="fresh">Fresh Graduate (lebih “menjual” diri)</option>
@@ -100,6 +118,7 @@
           <hr class="sep" />
 
           <h2>Lampiran (Opsional)</h2>
+
 
           <div class="toggle-grid">
             <label class="toggle">

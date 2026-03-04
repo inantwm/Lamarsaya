@@ -202,3 +202,23 @@ input:focus, select:focus, textarea:focus{
   left: 22px;
   background: #071126;
 }
+
+.ttd-box {
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #fff;
+  width: 100%;
+  max-width: 400px;
+  height: 180px;
+  position: relative;
+}
+
+#signaturePad {
+  width: 100%;
+  height: 100%;
+  touch-action: none; /* penting untuk mobile */
+}
+
+.ttd-actions {
+  margin-top: 8px;
+}
