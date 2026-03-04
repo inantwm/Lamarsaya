@@ -7,7 +7,7 @@
   document.getElementById("year").textContent = new Date().getFullYear();
 
   // =========================
-  // FILE LAMPIRAN
+  // INPUT LAMPIRAN
   // =========================
 
   const includeCV = document.getElementById("includeCV");
@@ -18,9 +18,10 @@
   const filePasFoto = document.getElementById("filePasFoto");
   const fileSKCK = document.getElementById("fileSKCK");
   const filePendukung = document.getElementById("filePendukung");
+  const berkasPendukungText = document.getElementById("berkasPendukungText");
 
   // =========================
-  // SIGNATURE CANVAS (ANTI HILANG MOBILE)
+  // SIGNATURE CANVAS (STABLE MOBILE)
   // =========================
 
   const canvas = document.getElementById("signaturePad");
@@ -59,7 +60,7 @@
 
   let drawing = false;
 
-  function getPosition(e) {
+  function getPos(e) {
     const rect = canvas.getBoundingClientRect();
     if (e.touches) {
       return {
@@ -67,30 +68,27 @@
         y: e.touches[0].clientY - rect.top
       };
     }
-    return {
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top
-    };
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
   }
 
   function startDraw(e) {
     drawing = true;
-    const pos = getPosition(e);
+    const p = getPos(e);
     ctx.beginPath();
-    ctx.moveTo(pos.x, pos.y);
+    ctx.moveTo(p.x, p.y);
   }
 
   function draw(e) {
     if (!drawing) return;
     e.preventDefault();
-    const pos = getPosition(e);
-    ctx.lineTo(pos.x, pos.y);
+    const p = getPos(e);
+    ctx.lineTo(p.x, p.y);
     ctx.stroke();
   }
 
   function endDraw() {
     drawing = false;
-    savedSignature = canvas.toDataURL();
+    savedSignature = canvas.toDataURL("image/png");
   }
 
   canvas.addEventListener("mousedown", startDraw);
@@ -130,6 +128,13 @@
     return pairs.map(([l,v]) => `${l.padEnd(max)} : ${v}`);
   }
 
+  function splitLampiranText(input) {
+    return String(input || "")
+      .split(",")
+      .map(s => s.trim())
+      .filter(Boolean);
+  }
+
   function getFormData() {
     return {
       namaPelamar: namaPelamar.value.trim(),
@@ -150,80 +155,49 @@
   }
 
   // =========================
-  // 4 TEMPLATE LENGKAP
+  // 4 TEMPLATE
   // =========================
 
   const TEMPLATES = {
-
     formal: (d) => {
-      const identitas = formatIdentitasBlock([
+      const id = formatIdentitasBlock([
         ["Nama", d.namaPelamar],
         ["Tempat/Tanggal Lahir", `${d.tempatLahir}, ${formatTanggalIndonesia(d.tglLahir)}`],
         ["Pendidikan Terakhir", d.pendidikan],
         ["Alamat", d.alamatPelamar],
         ["Email", d.email],
-        ["No. HP", d.telepon]
+        ["No. HP", d.telepon],
       ]);
-
-      return [
-        "Dengan hormat,",
-        "",
-        "Saya yang bertanda tangan di bawah ini:",
-        ...identitas,
-        "",
-        `Dengan ini mengajukan permohonan untuk melamar pekerjaan di ${d.namaPT} sebagai ${d.posisi}.`,
-        "Saya memiliki motivasi kerja yang tinggi dan siap bekerja secara profesional.",
+      return ["Dengan hormat,", "", "Saya yang bertanda tangan di bawah ini:", ...id, "",
+        `Dengan ini mengajukan lamaran sebagai ${d.posisi} di ${d.namaPT}.`,
+        "Saya siap bekerja profesional dan bertanggung jawab."
       ];
     },
 
     operator: (d) => {
-      const identitas = formatIdentitasBlock([
+      const id = formatIdentitasBlock([
         ["Nama", d.namaPelamar],
         ["Tempat/Tanggal Lahir", `${d.tempatLahir}, ${formatTanggalIndonesia(d.tglLahir)}`],
         ["Pendidikan Terakhir", d.pendidikan],
-        ["Alamat", d.alamatPelamar]
+        ["Alamat", d.alamatPelamar],
       ]);
-
-      return [
-        "Dengan hormat,",
-        "",
-        "Saya yang bertanda tangan di bawah ini:",
-        ...identitas,
-        "",
-        `Dengan ini saya mengajukan lamaran untuk posisi ${d.posisi} di ${d.namaPT}.`,
-        "Saya siap bekerja shift dan mengikuti SOP perusahaan."
+      return ["Dengan hormat,", "", "Saya yang bertanda tangan di bawah ini:", ...id, "",
+        `Mengajukan lamaran posisi ${d.posisi} di ${d.namaPT}.`,
+        "Saya siap bekerja shift dan mengikuti SOP."
       ];
     },
 
-    operatoraja: (d) => {
-      const identitas = formatIdentitasBlock([
-        ["Nama", d.namaPelamar],
-        ["Tempat/Tanggal Lahir", `${d.tempatLahir}, ${formatTanggalIndonesia(d.tglLahir)}`],
-        ["Pendidikan Terakhir", d.pendidikan],
-        ["Alamat", d.alamatPelamar]
-      ]);
-
-      return [
-        "Dengan hormat,",
-        "",
-        `Berdasarkan informasi lowongan pada tanggal ${formatTanggalIndonesia(d.tanggalSurat)},`,
-        `bahwa perusahaan membutuhkan tenaga kerja sebagai ${d.posisi}.`,
-        "",
-        ...identitas,
-        "",
-        `Mengajukan permohonan untuk menjadi tenaga kerja di ${d.namaPT}.`
-      ];
-    },
+    operatoraja: (d) => [
+      "Dengan hormat,", "",
+      `Berdasarkan informasi lowongan pada tanggal ${formatTanggalIndonesia(d.tanggalSurat)},`,
+      `Saya bermaksud melamar sebagai ${d.posisi} di ${d.namaPT}.`
+    ],
 
     fresh: (d) => [
-      "Dengan hormat,",
-      "",
+      "Dengan hormat,", "",
       `Perkenalkan saya ${d.namaPelamar}, lulusan ${d.pendidikan}.`,
-      `Saya bermaksud melamar posisi ${d.posisi} di ${d.namaPT}.`,
-      "",
-      "Saya siap belajar dan berkembang bersama perusahaan."
+      `Saya bermaksud melamar posisi ${d.posisi} di ${d.namaPT}.`
     ]
-
   };
 
   // =========================
@@ -232,14 +206,14 @@
 
   function buildLetter(d) {
 
-    const header = [];
+    const lines = [];
 
     if (d.kotaSurat && d.tanggalSurat) {
-      header.push(`${d.kotaSurat}, ${formatTanggalIndonesia(d.tanggalSurat)}`);
-      header.push("");
+      lines.push(`${d.kotaSurat}, ${formatTanggalIndonesia(d.tanggalSurat)}`);
+      lines.push("");
     }
 
-    header.push(
+    lines.push(
       "Perihal : Lamaran Pekerjaan",
       "",
       "Kepada Yth,",
@@ -249,102 +223,151 @@
       ""
     );
 
-    const body = TEMPLATES[d.template](d);
+    lines.push(...TEMPLATES[d.template](d));
 
-    const lampiranList = [];
+    const lampiran = [];
+    if (includeCV.checked) lampiran.push("Curriculum Vitae (CV)");
+    if (includePasFoto.checked) lampiran.push("Pas Foto");
+    if (includeSKCK.checked) lampiran.push("SKCK");
 
-    if (includeCV.checked) lampiranList.push("Curriculum Vitae (CV)");
-    if (includePasFoto.checked) lampiranList.push("Pas Foto");
-    if (includeSKCK.checked) lampiranList.push("SKCK");
+    lampiran.push(...splitLampiranText(berkasPendukungText.value));
 
-    const lampiranSection = lampiranList.length > 0
-      ? ["", "Sebagai bahan pertimbangan, berikut saya lampirkan:", ...lampiranList.map((l,i)=>`${i+1}. ${l}`)]
-      : [];
+    if (lampiran.length > 0) {
+      lines.push("", "Sebagai bahan pertimbangan, berikut saya lampirkan:");
+      lampiran.forEach((l,i)=> lines.push(`${i+1}. ${l}`));
+    }
 
-    const closing = [
-      "",
-      "Hormat saya,"
-    ];
+    lines.push("", "Hormat saya,");
 
-    return header.concat(body).concat(lampiranSection).concat(closing);
+    return lines;
   }
 
   // =========================
-  // EXPORT PDF PROFESIONAL
+  // EXPORT PDF PROFESIONAL + MERGE
   // =========================
 
   async function exportPDF(d, fileName) {
 
     const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ unit: "mm", format: "a4" });
+    const doc = new jsPDF({ unit:"mm", format:"a4" });
 
     const margin = 25;
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
-    const maxWidth = pageWidth - margin * 2;
+    const maxWidth = pageWidth - margin*2;
 
     doc.setFont("courier","normal");
     doc.setFontSize(12);
 
-    let y = margin;
+    if (d.kotaSurat && d.tanggalSurat) {
+      doc.text(
+        `${d.kotaSurat}, ${formatTanggalIndonesia(d.tanggalSurat)}`,
+        pageWidth - margin,
+        margin,
+        { align:"right" }
+      );
+    }
 
+    let y = margin + 15;
     const lines = buildLetter(d);
 
     lines.forEach(line=>{
       const wrapped = doc.splitTextToSize(line, maxWidth);
       wrapped.forEach(w=>{
         doc.text(w, margin, y);
-        y += 6;
+        y+=6;
       });
       if (line.trim()==="") y+=2;
     });
 
-    const signatureY = pageHeight - 55;
+    const signY = pageHeight - 55;
 
-    doc.text("Hormat saya,", pageWidth - margin, signatureY, {align:"right"});
+    doc.text("Hormat saya,", pageWidth - margin, signY, {align:"right"});
 
     if (savedSignature) {
-      doc.addImage(
-        savedSignature,
-        "PNG",
+      doc.addImage(savedSignature,"PNG",
         pageWidth - margin - 45,
-        signatureY + 5,
+        signY + 5,
         40,
         20
       );
     }
 
-    doc.text(d.namaPelamar, pageWidth - margin, signatureY + 30, {align:"right"});
-
-    // ===== MERGE LAMPIRAN =====
+    doc.text(d.namaPelamar, pageWidth - margin, signY + 30, {align:"right"});
 
     const { PDFDocument } = window.PDFLib;
     const master = await PDFDocument.create();
     const letterBytes = doc.output("arraybuffer");
-
     const letterDoc = await PDFDocument.load(letterBytes);
-    const letterPages = await master.copyPages(letterDoc, letterDoc.getPageIndices());
-    letterPages.forEach(p=>master.addPage(p));
+    const pages = await master.copyPages(letterDoc, letterDoc.getPageIndices());
+    pages.forEach(p=>master.addPage(p));
 
     const attachments = [];
 
     if (includeCV.checked && fileCV.files[0]) attachments.push(fileCV.files[0]);
     if (includePasFoto.checked && filePasFoto.files[0]) attachments.push(filePasFoto.files[0]);
     if (includeSKCK.checked && fileSKCK.files[0]) attachments.push(fileSKCK.files[0]);
+
     for (const f of (filePendukung.files || [])) attachments.push(f);
 
     for (const f of attachments) {
+
+      const bytes = await f.arrayBuffer();
+
       if (f.type === "application/pdf") {
-        const bytes = await f.arrayBuffer();
         const src = await PDFDocument.load(bytes);
-        const pages = await master.copyPages(src, src.getPageIndices());
-        pages.forEach(p=>master.addPage(p));
+        const pgs = await master.copyPages(src, src.getPageIndices());
+        pgs.forEach(p=>master.addPage(p));
+      }
+      else if (f.type.startsWith("image/")) {
+        const imgDoc = await PDFDocument.create();
+        let img;
+        if (f.type === "image/png")
+          img = await imgDoc.embedPng(bytes);
+        else
+          img = await imgDoc.embedJpg(bytes);
+
+        const page = imgDoc.addPage();
+        const { width, height } = page.getSize();
+
+        const scale = Math.min(width/img.width, height/img.height)*0.9;
+        page.drawImage(img,{
+          x:(width-img.width*scale)/2,
+          y:(height-img.height*scale)/2,
+          width:img.width*scale,
+          height:img.height*scale
+        });
+
+        const imgBytes = await imgDoc.save();
+        const finalImgDoc = await PDFDocument.load(imgBytes);
+        const pgs = await master.copyPages(finalImgDoc, finalImgDoc.getPageIndices());
+        pgs.forEach(p=>master.addPage(p));
       }
     }
 
     const finalBytes = await master.save();
-    const blob = new Blob([finalBytes], {type:"application/pdf"});
+    const blob = new Blob([finalBytes],{type:"application/pdf"});
     saveAs(blob, `${fileName}.pdf`);
+  }
+
+  // =========================
+  // EXPORT DOCX
+  // =========================
+
+  async function exportDOCX(d,fileName){
+
+    const { Document, Packer, Paragraph, TextRun } = window.docx;
+    const lines = buildLetter(d);
+
+    const paragraphs = lines.map(l=>
+      new Paragraph({
+        children:[new TextRun({text:l,font:"Times New Roman",size:24})]
+      })
+    );
+
+    const doc = new Document({ sections:[{children:paragraphs}]});
+    const blob = await Packer.toBlob(doc);
+    saveAs(blob,`${fileName}.docx`);
   }
 
   // =========================
@@ -353,15 +376,15 @@
 
   btnPreview.addEventListener("click",()=>{
     const d = getFormData();
-    const lines = buildLetter(d);
-    previewArea.innerHTML = "<pre>"+lines.join("\n")+"</pre>";
+    previewArea.innerHTML="<pre>"+buildLetter(d).join("\n")+"</pre>";
   });
 
-  form.addEventListener("submit", async (e)=>{
+  form.addEventListener("submit", async(e)=>{
     e.preventDefault();
     const d = getFormData();
     const fileName = sanitizeFileName(`Lamaran - ${d.namaPelamar}`);
-    await exportPDF(d, fileName);
+    if(d.mode==="pdf") await exportPDF(d,fileName);
+    else await exportDOCX(d,fileName);
   });
 
 })();
