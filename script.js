@@ -3,8 +3,22 @@
   const form = document.getElementById("formLamaran");
   const previewArea = document.getElementById("previewArea");
   const btnPreview = document.getElementById("btnPreview");
-  const badgeStatus = document.getElementById("badgeStatus");
   document.getElementById("year").textContent = new Date().getFullYear();
+
+  // =========================
+  // FILE ATTACHMENTS
+  // =========================
+
+  const fileCV = document.getElementById("fileCV");
+  const fileFoto = document.getElementById("fileFoto");
+  const fileSKCK = document.getElementById("fileSKCK");
+  const fileLain = document.getElementById("fileLain");
+
+  const cekCV = document.getElementById("cekCV");
+  const cekFoto = document.getElementById("cekFoto");
+  const cekSKCK = document.getElementById("cekSKCK");
+
+  const daftarBerkas = document.getElementById("daftarBerkas");
 
   // =========================
   // SIGNATURE CANVAS
@@ -15,37 +29,30 @@
   const clearBtn = document.getElementById("clearTtd");
 
   function resizeCanvas() {
-  const ratio = window.devicePixelRatio || 1;
+    const ratio = window.devicePixelRatio || 1;
+    const oldData = canvas.toDataURL();
 
-  // Simpan gambar lama dulu
-  const oldData = canvas.toDataURL();
+    canvas.width = canvas.offsetWidth * ratio;
+    canvas.height = canvas.offsetHeight * ratio;
 
-  canvas.width = canvas.offsetWidth * ratio;
-  canvas.height = canvas.offsetHeight * ratio;
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    ctx.lineWidth = 2;
+    ctx.lineCap = "round";
+    ctx.strokeStyle = "#000";
 
-  ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-  ctx.lineWidth = 2;
-  ctx.lineCap = "round";
-  ctx.strokeStyle = "#000";
-
-  // Restore gambar lama
-  if (oldData !== "data:,") {
-    const img = new Image();
-    img.onload = () => {
-      ctx.drawImage(img, 0, 0, canvas.width / ratio, canvas.height / ratio);
-    };
-    img.src = oldData;
+    if (oldData !== "data:,") {
+      const img = new Image();
+      img.onload = () => {
+        ctx.drawImage(img, 0, 0, canvas.width / ratio, canvas.height / ratio);
+      };
+      img.src = oldData;
+    }
   }
-}
 
   resizeCanvas();
   window.addEventListener("orientationchange", () => {
-  setTimeout(resizeCanvas, 300);
-});
-
-  ctx.lineWidth = 2;
-  ctx.lineCap = "round";
-  ctx.strokeStyle = "#000";
+    setTimeout(resizeCanvas, 300);
+  });
 
   let drawing = false;
 
@@ -137,12 +144,13 @@
       lokasiPT: lokasiPT.value.trim(),
       posisi: posisi.value.trim(),
       template: template.value,
-      mode: modeEkspor.value
+      mode: modeEkspor.value,
+      lampiranText: daftarBerkas ? daftarBerkas.value.trim() : ""
     };
   }
 
   // =========================
-  // TEMPLATES
+  // TEMPLATES (4 TEMPLATE UTUH)
   // =========================
 
   const TEMPLATES = {
@@ -164,7 +172,9 @@
         ...identitas,
         "",
         `Dengan ini mengajukan permohonan untuk melamar pekerjaan di ${d.namaPT} sebagai ${d.posisi}.`,
-        "Saya memiliki motivasi kerja yang tinggi, disiplin, dan mampu bekerja secara individu maupun tim.",
+        "",
+        "Sebagai bahan pertimbangan, berikut saya lampirkan:",
+        d.lampiranText || "- Curriculum Vitae",
         "",
         "Besar harapan saya untuk dapat mengikuti proses seleksi lebih lanjut."
       ];
@@ -187,7 +197,9 @@
         ...identitas,
         "",
         `Dengan ini saya mengajukan lamaran kerja untuk posisi ${d.posisi} di ${d.namaPT}.`,
-        "Saya terbiasa bekerja mengikuti SOP, menjaga kualitas, dan siap bekerja dengan sistem shift.",
+        "",
+        "Sebagai bahan pertimbangan, berikut saya lampirkan:",
+        d.lampiranText || "- Curriculum Vitae",
         "",
         "Saya siap mengikuti proses interview sesuai jadwal yang ditentukan."
       ];
@@ -204,7 +216,7 @@
       return [
         "Dengan hormat,",
         "",
-        `Berdasarkan informasi lowongan kerja yang saya peroleh pada tanggal ${formatTanggalIndonesia(d.tanggalSurat)}, bahwa perusahaan yang Bapak/Ibu pimpin membutuhkan tenaga kerja sebagai ${d.posisi}, dengan ini saya mengajukan lamaran.`,
+        `Berdasarkan informasi lowongan kerja yang saya peroleh pada tanggal ${formatTanggalIndonesia(d.tanggalSurat)},`,
         ...identitas,
         "",
         `Mengajukan permohonan untuk menjadi tenaga kerja di ${d.namaPT} sebagai ${d.posisi}.`
@@ -217,47 +229,79 @@
       `Perkenalkan, saya ${d.namaPelamar} (${d.tempatLahir}, ${formatTanggalIndonesia(d.tglLahir)}), lulusan ${d.pendidikan}.`,
       `Saya bermaksud melamar posisi ${d.posisi} di ${d.namaPT}.`,
       "",
-      "Saya memiliki kemauan belajar yang tinggi, cepat beradaptasi, dan siap berkembang bersama perusahaan.",
+      "Sebagai bahan pertimbangan, berikut saya lampirkan:",
+      d.lampiranText || "- Curriculum Vitae",
       "",
-      `Kontak saya: ${d.telepon} | ${d.email}`
+      "Saya siap mengikuti proses seleksi."
     ]
   };
 
   // =========================
-  // PREVIEW
+  // MERGE ATTACHMENTS
   // =========================
 
-  function buildPreview(d) {
+  async function mergeAttachments(mainBlob) {
 
-    const header = [
-      d.kotaSurat && d.tanggalSurat
-        ? `${d.kotaSurat}, ${formatTanggalIndonesia(d.tanggalSurat)}`
-        : "",
-      "",
-      "Perihal : Lamaran Pekerjaan",
-      "",
-      "Kepada Yth,",
-      d.namaPT,
-      d.lokasiPT || "",
-      "Di tempat",
-      ""
-    ];
+    const { PDFDocument } = PDFLib;
+    const mergedPdf = await PDFDocument.create();
 
-    const closing = [
-      "",
-      "Hormat saya,",
-      d.namaPelamar
-    ];
+    const mainBytes = await mainBlob.arrayBuffer();
+    const mainDoc = await PDFDocument.load(mainBytes);
+    const mainPages = await mergedPdf.copyPages(mainDoc, mainDoc.getPageIndices());
+    mainPages.forEach(p => mergedPdf.addPage(p));
 
-    return header.concat(TEMPLATES[d.template](d)).concat(closing);
-  }
+    async function addFile(file) {
+      if (!file) return;
 
-  function renderPreview(lines) {
-    previewArea.innerHTML = `<pre>${escapeHtml(lines.join("\n"))}</pre>`;
+      const bytes = await file.arrayBuffer();
+
+      if (file.type === "application/pdf") {
+        const pdf = await PDFDocument.load(bytes);
+        const pages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
+        pages.forEach(p => mergedPdf.addPage(p));
+      }
+
+      if (file.type.startsWith("image/")) {
+        const imgPdf = await PDFDocument.create();
+        const page = imgPdf.addPage([595, 842]);
+
+        let img;
+        if (file.type === "image/png") {
+          img = await imgPdf.embedPng(bytes);
+        } else {
+          img = await imgPdf.embedJpg(bytes);
+        }
+
+        const { width, height } = img.scale(0.8);
+        page.drawImage(img, {
+          x: (595 - width) / 2,
+          y: (842 - height) / 2,
+          width,
+          height
+        });
+
+        const imgBytes = await imgPdf.save();
+        const imgDoc = await PDFDocument.load(imgBytes);
+        const pages = await mergedPdf.copyPages(imgDoc, imgDoc.getPageIndices());
+        pages.forEach(p => mergedPdf.addPage(p));
+      }
+    }
+
+    if (cekCV && cekCV.checked) await addFile(fileCV.files[0]);
+    if (cekFoto && cekFoto.checked) await addFile(fileFoto.files[0]);
+    if (cekSKCK && cekSKCK.checked) await addFile(fileSKCK.files[0]);
+
+    if (fileLain && fileLain.files.length > 0) {
+      for (let f of fileLain.files) {
+        await addFile(f);
+      }
+    }
+
+    return await mergedPdf.save();
   }
 
   // =========================
-  // EXPORT PDF
+  // EXPORT PDF (LAYOUT TETAP)
   // =========================
 
   async function exportPDF(d, fileName) {
@@ -310,98 +354,35 @@
       if (line.trim() === "") y += 2;
     });
 
-    const bottomY = pageHeight - marginBottom;
+    const startY = pageHeight - marginBottom - 40;
 
-    const signatureHeight = 18;
-const spacingAfterHormat = 10;
+    doc.text("Hormat saya,", pageWidth - marginRight, startY, { align: "right" });
 
-const startY = pageHeight - marginBottom - 40;
+    const signatureData = canvas.toDataURL("image/png");
 
-// 1️⃣ Hormat saya (paling atas)
-doc.text("Hormat saya,", pageWidth - marginRight, startY, { align: "right" });
-
-// 2️⃣ Tanda tangan (di tengah)
-const signatureData = canvas.toDataURL("image/png");
-
-if (signatureData !== "data:,") {
-  doc.addImage(
-    signatureData,
-    "PNG",
-    pageWidth - marginRight - 40,
-    startY + 5,
-    35,
-    signatureHeight
-  );
-}
-
-// 3️⃣ Nama (paling bawah)
-doc.text(
-  d.namaPelamar,
-  pageWidth - marginRight,
-  startY + signatureHeight + 15,
-  { align: "right" }
-);
-
-    doc.save(`${fileName}.pdf`);
-  }
-
-  // =========================
-  // EXPORT DOCX
-  // =========================
-
-  async function exportDOCX(d, fileName) {
-
-    const { Document, Packer, Paragraph, TextRun, AlignmentType } = window.docx;
-
-    const children = [];
-
-    if (d.kotaSurat && d.tanggalSurat) {
-      children.push(new Paragraph({
-        alignment: AlignmentType.RIGHT,
-        children: [new TextRun(`${d.kotaSurat}, ${formatTanggalIndonesia(d.tanggalSurat)}`)]
-      }));
+    if (signatureData !== "data:,") {
+      doc.addImage(
+        signatureData,
+        "PNG",
+        pageWidth - marginRight - 40,
+        startY + 5,
+        35,
+        18
+      );
     }
 
-    children.push(new Paragraph(""));
+    doc.text(
+      d.namaPelamar,
+      pageWidth - marginRight,
+      startY + 35,
+      { align: "right" }
+    );
 
-    const header = [
-      "Perihal : Lamaran Pekerjaan",
-      "",
-      "Kepada Yth,",
-      d.namaPT,
-      d.lokasiPT || "",
-      "Di tempat",
-      ""
-    ];
+    const pdfBlob = doc.output("blob");
+    const mergedBytes = await mergeAttachments(pdfBlob);
+    const finalBlob = new Blob([mergedBytes], { type: "application/pdf" });
 
-    header.forEach(line => children.push(new Paragraph(line)));
-    TEMPLATES[d.template](d).forEach(line => children.push(new Paragraph(line)));
-
-    children.push(new Paragraph(""));
-    children.push(new Paragraph({
-      alignment: AlignmentType.RIGHT,
-      children: [new TextRun("Hormat saya,")]
-    }));
-
-    children.push(new Paragraph(""));
-    children.push(new Paragraph({
-      alignment: AlignmentType.RIGHT,
-      children: [new TextRun(d.namaPelamar)]
-    }));
-
-    const doc = new Document({
-      sections: [{
-        properties: {
-          page: {
-            margin: { top: 1700, bottom: 1700, left: 1700, right: 1700 }
-          }
-        },
-        children
-      }]
-    });
-
-    const blob = await Packer.toBlob(doc);
-    saveAs(blob, `${fileName}.docx`);
+    saveAs(finalBlob, `${fileName}.pdf`);
   }
 
   // =========================
@@ -410,7 +391,24 @@ doc.text(
 
   btnPreview.addEventListener("click", () => {
     const d = getFormData();
-    renderPreview(buildPreview(d));
+    const lines = [
+      d.kotaSurat && d.tanggalSurat
+        ? `${d.kotaSurat}, ${formatTanggalIndonesia(d.tanggalSurat)}`
+        : "",
+      "",
+      "Perihal : Lamaran Pekerjaan",
+      "",
+      "Kepada Yth,",
+      d.namaPT,
+      d.lokasiPT || "",
+      "Di tempat",
+      "",
+      ...TEMPLATES[d.template](d),
+      "",
+      "Hormat saya,",
+      d.namaPelamar
+    ];
+    previewArea.innerHTML = `<pre>${escapeHtml(lines.join("\n"))}</pre>`;
   });
 
   form.addEventListener("submit", async (e) => {
@@ -421,11 +419,7 @@ doc.text(
       `Lamaran - ${d.namaPelamar} - ${d.namaPT} - ${d.posisi}`
     );
 
-    if (d.mode === "pdf") {
-      await exportPDF(d, fileName);
-    } else {
-      await exportDOCX(d, fileName);
-    }
+    await exportPDF(d, fileName);
   });
 
 })();
