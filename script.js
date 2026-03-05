@@ -18,16 +18,13 @@
     canvas.width = canvas.offsetWidth * ratio;
     canvas.height = canvas.offsetHeight * ratio;
     ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-    ctx.lineWidth = 2;
-    ctx.lineCap = "round";
-    ctx.strokeStyle = "#000";
+    ctx.lineWidth = 2; ctx.lineCap = "round"; ctx.strokeStyle = "#000";
     if (oldData !== "data:,") {
       const img = new Image();
       img.onload = () => { ctx.drawImage(img, 0, 0, canvas.width / ratio, canvas.height / ratio); };
       img.src = oldData;
     }
   }
-
   resizeCanvas();
   window.addEventListener("orientationchange", () => { setTimeout(resizeCanvas, 300); });
 
@@ -64,12 +61,6 @@
   function sanitizeFileName(name) { return name.replace(/[\\/:*?"<>|]+/g, "-"); }
   function escapeHtml(str) { return str.replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 
-  // Font Times New Roman bukan monospaced, jadi kita gunakan spasi manual untuk perataan titik dua
-  function formatIdentitasBlock(pairs) {
-    const max = Math.max(...pairs.map(p => p[0].length));
-    return pairs.map(([l,v]) => `${l.padEnd(max + 1)} : ${v}`);
-  }
-
   function getFormData() {
     return {
       namaPelamar: document.getElementById("namaPelamar").value.trim(),
@@ -100,46 +91,36 @@
     return [...new Set(list)];
   }
 
+  // Objek identitas terpisah untuk diproses secara khusus (per baris)
+  function getIdentitasData(d) {
+    return [
+      ["Nama", d.namaPelamar],
+      ["Tempat/Tanggal Lahir", `${d.tempatLahir}, ${formatTanggalIndonesia(d.tglLahir)}`],
+      ["Pendidikan Terakhir", d.pendidikan],
+      ["Alamat", d.alamatPelamar],
+      ["Email", d.email],
+      ["No. HP", d.telepon]
+    ];
+  }
+
   // =========================
   // TEMPLATES
   // =========================
   const TEMPLATES = {
-    formal: (d) => {
-      const identitas = formatIdentitasBlock([
-        ["Nama", d.namaPelamar],
-        ["Tempat/Tanggal Lahir", `${d.tempatLahir}, ${formatTanggalIndonesia(d.tglLahir)}`],
-        ["Pendidikan Terakhir", d.pendidikan],
-        ["Alamat", d.alamatPelamar],
-        ["Email", d.email],
-        ["No. HP", d.telepon],
-      ]);
-      return ["Dengan hormat,", "", "Saya yang bertanda tangan di bawah ini:", ...identitas, "", `Dengan ini mengajukan permohonan untuk melamar pekerjaan di ${d.namaPT} sebagai ${d.posisi}.`, "Saya memiliki motivasi kerja yang tinggi, disiplin, dan mampu bekerja secara individu maupun tim.", "", "Besar harapan saya untuk dapat mengikuti proses seleksi lebih lanjut."];
-    },
-    operator: (d) => {
-      const identitas = formatIdentitasBlock([
-        ["Nama", d.namaPelamar],
-        ["Tempat/Tanggal Lahir", `${d.tempatLahir}, ${formatTanggalIndonesia(d.tglLahir)}`],
-        ["Pendidikan Terakhir", d.pendidikan],
-        ["Alamat", d.alamatPelamar],
-        ["Email", d.email],
-        ["No. HP", d.telepon],
-      ]);
-      return ["Dengan hormat,", "", "Saya yang bertanda tangan di bawah ini:", ...identitas, "", `Dengan ini saya mengajukan lamaran kerja untuk posisi ${d.posisi} di ${d.namaPT}.`, "Saya terbiasa bekerja mengikuti SOP, menjaga kualitas, dan siap bekerja dengan sistem shift.", "", "Saya siap mengikuti proses interview sesuai jadwal yang ditentukan."];
-    },
-    operatoraja: (d) => {
-      const identitas = formatIdentitasBlock([["Nama", d.namaPelamar], ["Tempat/Tanggal Lahir", `${d.tempatLahir}, ${formatTanggalIndonesia(d.tglLahir)}`], ["Pendidikan Terakhir", d.pendidikan], ["Alamat", d.alamatPelamar]]);
-      return ["Dengan hormat,", "", `Berdasarkan informasi lowongan kerja yang saya peroleh pada tanggal ${formatTanggalIndonesia(d.tanggalSurat)}, bahwa perusahaan yang Bapak/Ibu pimpin membutuhkan tenaga kerja sebagai ${d.posisi}, dengan ini saya mengajukan lamaran.`, ...identitas, "", `Mengajukan permohonan untuk menjadi tenaga kerja di ${d.namaPT} sebagai ${d.posisi}.`];
-    },
+    formal: (d) => ["Dengan hormat,", "", "Saya yang bertanda tangan di bawah ini:", "[[IDENTITAS]]", "", `Dengan ini mengajukan permohonan untuk melamar pekerjaan di ${d.namaPT} sebagai ${d.posisi}.`, "Saya memiliki motivasi kerja yang tinggi, disiplin, dan mampu bekerja secara individu maupun tim.", "", "Besar harapan saya untuk dapat mengikuti proses seleksi lebih lanjut."],
+    operator: (d) => ["Dengan hormat,", "", "Saya yang bertanda tangan di bawah ini:", "[[IDENTITAS]]", "", `Dengan ini saya mengajukan lamaran kerja untuk posisi ${d.posisi} di ${d.namaPT}.`, "Saya terbiasa bekerja mengikuti SOP, menjaga kualitas, dan siap bekerja dengan sistem shift.", "", "Saya siap mengikuti proses interview sesuai jadwal yang ditentukan."],
+    operatoraja: (d) => ["Dengan hormat,", "", `Berdasarkan informasi lowongan kerja yang saya peroleh pada tanggal ${formatTanggalIndonesia(d.tanggalSurat)}, bahwa perusahaan yang Bapak/Ibu pimpin membutuhkan tenaga kerja sebagai ${d.posisi}, dengan ini saya mengajukan lamaran.`, "[[IDENTITAS]]", "", `Mengajukan permohonan untuk menjadi tenaga kerja di ${d.namaPT} sebagai ${d.posisi}.`],
     fresh: (d) => ["Dengan hormat,", "", `Perkenalkan, saya ${d.namaPelamar} (${d.tempatLahir}, ${formatTanggalIndonesia(d.tglLahir)}), lulusan ${d.pendidikan}.`, `Saya bermaksud melamar posisi ${d.posisi} di ${d.namaPT}.`, "", "Saya memiliki kemauan belajar yang tinggi, cepat beradaptasi, dan siap berkembang bersama perusahaan.", "", `Kontak saya: ${d.telepon} | ${d.email}`]
   };
 
   // =========================
-  // PREVIEW (Browser default Times)
+  // PREVIEW
   // =========================
   function renderPreview() {
     const d = getFormData();
     const lampiran = getLampiranArray();
-    const body = TEMPLATES[d.template](d);
+    const templateLines = TEMPLATES[d.template](d);
+    const idenData = getIdentitasData(d);
     const tglText = d.kotaSurat && d.tanggalSurat ? `${d.kotaSurat}, ${formatTanggalIndonesia(d.tanggalSurat)}` : "";
     
     let headerLeft = lampiran.length > 0 ? `Lampiran : ${lampiran.length} Berkas` : `Perihal : Lamaran Pekerjaan`;
@@ -150,22 +131,35 @@
                   <span>${tglText}</span>
                 </div>`;
     
-    html += `<div style="font-family:'Times New Roman', Times, serif; font-size:14px; line-height:1.3;">
+    html += `<div style="font-family:'Times New Roman', Times, serif; font-size:14px; line-height:1.4;">
               ${subHeader}
               <br>
               <p>Kepada Yth,<br>${d.namaPT}<br>${d.lokasiPT || ""}<br>Di tempat</p>
-              <br>
-              <pre style="font-family:inherit; white-space:pre-wrap; font-size:14px;">${escapeHtml(body.join("\n"))}</pre>`;
+              <br>`;
+
+    templateLines.forEach(line => {
+      if (line === "[[IDENTITAS]]") {
+        idenData.forEach(item => {
+          html += `<div style="display: flex;">
+                     <div style="width: 150px;">${item[0]}</div>
+                     <div style="width: 15px;">:</div>
+                     <div style="flex: 1;">${item[1]}</div>
+                   </div>`;
+        });
+      } else {
+        html += `<p style="margin: 0;">${escapeHtml(line)}</p>`;
+      }
+    });
 
     if (lampiran.length > 0) {
       html += `<br><p>Sebagai bahan pertimbangan, saya lampirkan:</p>`;
-      lampiran.forEach((item, i) => { html += `<p>${i + 1}. ${item}</p>`; });
+      lampiran.forEach((item, i) => { html += `<p style="margin:0;">${i + 1}. ${item}</p>`; });
     }
 
     html += `<br><p>Demikian surat lamaran ini saya sampaikan. Atas perhatian Bapak/Ibu, saya mengucapkan terima kasih.</p>
              <div style="text-align:right; margin-top:30px;">
                <p>Hormat saya,</p>
-               <div style="height:60px;">(Tanda Tangan)</div>
+               <div style="height:60px;"></div>
                <p><b>${d.namaPelamar}</b></p>
              </div>
             </div>`;
@@ -175,7 +169,7 @@
   }
 
   // =========================
-  // EXPORT PDF (TIMES NEW ROMAN)
+  // EXPORT PDF (TIMES NEW ROMAN + ALIGNED DOTS)
   // =========================
   async function exportPDF(d, fileName) {
     const { jsPDF } = window.jspdf;
@@ -185,92 +179,96 @@
     const maxWidth = pageWidth - (margin * 2);
     const lampiran = getLampiranArray();
 
-    // Set Font ke Times
     doc.setFont("times", "normal");
-    doc.setFontSize(11); // Ukuran standar surat formal
+    doc.setFontSize(11);
     let y = 25;
 
     if (d.kotaSurat && d.tanggalSurat) {
       doc.text(`${d.kotaSurat}, ${formatTanggalIndonesia(d.tanggalSurat)}`, pageWidth - margin, y, { align: "right" });
     }
 
-    let nextLineY = y + 5;
     if (lampiran.length > 0) {
       doc.text(`Lampiran : ${lampiran.length} Berkas`, margin, y);
-      doc.text(`Perihal   : Lamaran Pekerjaan`, margin, nextLineY);
-      y = nextLineY + 10;
+      doc.text(`Perihal   : Lamaran Pekerjaan`, margin, y + 5);
+      y += 15;
     } else {
       doc.text(`Perihal   : Lamaran Pekerjaan`, margin, y);
-      y = nextLineY + 5;
+      y += 10;
     }
     
-    const headerLines = ["Kepada Yth,", d.namaPT, d.lokasiPT || "", "Di tempat", ""];
-    const bodyLines = TEMPLATES[d.template](d);
-    let fullLines = headerLines.concat(bodyLines);
+    doc.text("Kepada Yth,", margin, y);
+    doc.text(d.namaPT, margin, y + 5);
+    doc.text(d.lokasiPT || "", margin, y + 10);
+    doc.text("Di tempat", margin, y + 15);
+    y += 25;
 
-    fullLines.forEach(line => {
-      const wrapped = doc.splitTextToSize(line, maxWidth);
-      wrapped.forEach(w => {
-        doc.text(w, margin, y);
-        y += 6; // Spasi baris Times sedikit lebih lebar dibanding Courier
-      });
-      if (line.trim() === "") y += 2;
+    const bodyLines = TEMPLATES[d.template](d);
+    const idenData = getIdentitasData(d);
+    const dotX = margin + 45; // Posisi X tetap untuk titik dua
+
+    bodyLines.forEach(line => {
+      if (line === "[[IDENTITAS]]") {
+        idenData.forEach(item => {
+          doc.text(item[0], margin, y);
+          doc.text(":", dotX, y);
+          const valLines = doc.splitTextToSize(item[1], pageWidth - dotX - margin - 5);
+          doc.text(valLines, dotX + 4, y);
+          y += (valLines.length * 5.5);
+        });
+      } else if (line.trim() === "") {
+        y += 3;
+      } else {
+        const wrapped = doc.splitTextToSize(line, maxWidth);
+        doc.text(wrapped, margin, y);
+        y += (wrapped.length * 5.5);
+      }
     });
 
     if (lampiran.length > 0) {
-      y += 2;
+      y += 5;
       doc.text("Sebagai bahan pertimbangan, saya lampirkan:", margin, y);
       y += 6;
       lampiran.forEach((item, i) => {
         doc.text(`${i + 1}. ${item}`, margin, y);
-        y += 6;
+        y += 5.5;
       });
     }
 
-    y += 2;
-    const closingStatement = "Demikian surat lamaran ini saya sampaikan. Atas perhatian Bapak/Ibu, saya mengucapkan terima kasih.";
-    const wrappedClosing = doc.splitTextToSize(closingStatement, maxWidth);
-    wrappedClosing.forEach(line => {
-      doc.text(line, margin, y);
-      y += 6;
-    });
+    y += 5;
+    const closing = doc.splitTextToSize("Demikian surat lamaran ini saya sampaikan. Atas perhatian Bapak/Ibu, saya mengucapkan terima kasih.", maxWidth);
+    doc.text(closing, margin, y);
 
-    const footerY = Math.max(y + 15, 235);
+    const footerY = 240;
     doc.text("Hormat saya,", pageWidth - margin, footerY, { align: "right" });
     const sig = canvas.toDataURL("image/png");
-    if (sig !== "data:,") {
-      doc.addImage(sig, "PNG", pageWidth - margin - 35, footerY + 2, 30, 15);
-    }
+    if (sig !== "data:,") doc.addImage(sig, "PNG", pageWidth - margin - 35, footerY + 2, 30, 15);
     doc.setFont("times", "bold");
     doc.text(d.namaPelamar, pageWidth - margin, footerY + 22, { align: "right" });
 
-    // PDF LIB MERGE
+    // PDF MERGE
     const { PDFDocument } = window.PDFLib;
     if (PDFDocument) {
       const master = await PDFDocument.create();
       const letterDoc = await PDFDocument.load(doc.output("arraybuffer"));
-      const pages = await master.copyPages(letterDoc, letterDoc.getPageIndices());
-      pages.forEach(p => master.addPage(p));
-
-      const inputs = ["fileCV", "filePasFoto", "fileSKCK"];
+      const pgs = await master.copyPages(letterDoc, letterDoc.getPageIndices());
+      pgs.forEach(p => master.addPage(p));
+      const fileInputs = ["fileCV", "filePasFoto", "fileSKCK"];
       const files = [];
-      inputs.forEach(id => { if(document.getElementById(id).files[0]) files.push(document.getElementById(id).files[0]); });
+      fileInputs.forEach(id => { if(document.getElementById(id).files[0]) files.push(document.getElementById(id).files[0]); });
       const extra = document.getElementById("filePendukung").files;
       if(extra) Array.from(extra).forEach(f => files.push(f));
-
       for (const f of files) {
         const bytes = await f.arrayBuffer();
         const ext = f.name.split('.').pop().toLowerCase();
         if (ext === "pdf") {
           const src = await PDFDocument.load(bytes);
-          const pgs = await master.copyPages(src, src.getPageIndices());
-          pgs.forEach(p => master.addPage(p));
+          const copied = await master.copyPages(src, src.getPageIndices());
+          copied.forEach(p => master.addPage(p));
         } else if (["jpg","jpeg","png"].includes(ext)) {
           const img = ext === "png" ? await master.embedPng(bytes) : await master.embedJpg(bytes);
           const page = master.addPage();
-          const { width, height } = page.getSize();
-          const scale = Math.min((width-40)/img.width, (height-40)/img.height);
-          page.drawImage(img, { x:(width-img.width*scale)/2, y:(height-img.height*scale)/2, width:img.width*scale, height:img.height*scale });
+          const scale = Math.min((page.getSize().width-40)/img.width, (page.getSize().height-40)/img.height);
+          page.drawImage(img, { x:(page.getSize().width-img.width*scale)/2, y:(page.getSize().height-img.height*scale)/2, width:img.width*scale, height:img.height*scale });
         }
       }
       const finalBytes = await master.save();
@@ -281,31 +279,28 @@
   }
 
   // =========================
-  // EXPORT DOCX (TIMES NEW ROMAN)
+  // EXPORT DOCX (TABLE FOR ALIGNMENT)
   // =========================
   async function exportDOCX(d, fileName) {
-    const { Document, Packer, Paragraph, TextRun, AlignmentType } = window.docx;
+    const { Document, Packer, Paragraph, TextRun, AlignmentType, Table, TableRow, TableCell, WidthType, BorderStyle } = window.docx;
     const lampiran = getLampiranArray();
-    const body = TEMPLATES[d.template](d);
+    const templateLines = TEMPLATES[d.template](d);
+    const idenData = getIdentitasData(d);
     const font = "Times New Roman";
-    const size = 24; // 12pt (docx.js uses half-points)
+    const size = 24; 
 
-    let headerLeftText = lampiran.length > 0 ? `Lampiran : ${lampiran.length} Berkas` : "Perihal   : Lamaran Pekerjaan";
-    
     const children = [
       new Paragraph({
         alignment: AlignmentType.BOTH,
         children: [
-          new TextRun({ text: headerLeftText, font, size }),
+          new TextRun({ text: lampiran.length > 0 ? `Lampiran : ${lampiran.length} Berkas` : `Perihal   : Lamaran Pekerjaan`, font, size }),
           new TextRun({ text: "\t\t\t\t\t\t", font, size }),
           new TextRun({ text: `${d.kotaSurat}, ${formatTanggalIndonesia(d.tanggalSurat)}`, font, size })
         ]
       })
     ];
 
-    if (lampiran.length > 0) {
-      children.push(new Paragraph({ children: [new TextRun({ text: "Perihal   : Lamaran Pekerjaan", font, size })] }));
-    }
+    if (lampiran.length > 0) children.push(new Paragraph({ children: [new TextRun({ text: "Perihal   : Lamaran Pekerjaan", font, size })] }));
 
     children.push(
       new Paragraph(""),
@@ -316,32 +311,33 @@
       new Paragraph("")
     );
 
-    body.forEach(line => {
-      children.push(new Paragraph({ children: [new TextRun({ text: line, font, size })] }));
+    const noBorder = { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } };
+
+    templateLines.forEach(line => {
+      if (line === "[[IDENTITAS]]") {
+        const rows = idenData.map(item => new TableRow({
+          children: [
+            new TableCell({ width: { size: 30, type: WidthType.PERCENTAGE }, borders: noBorder, children: [new Paragraph({ children: [new TextRun({ text: item[0], font, size })] })] }),
+            new TableCell({ width: { size: 5, type: WidthType.PERCENTAGE }, borders: noBorder, children: [new Paragraph({ children: [new TextRun({ text: ":", font, size })] })] }),
+            new TableCell({ width: { size: 65, type: WidthType.PERCENTAGE }, borders: noBorder, children: [new Paragraph({ children: [new TextRun({ text: item[1], font, size })] })] }),
+          ]
+        }));
+        children.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, borders: { top: BorderStyle.NONE, bottom: BorderStyle.NONE, left: BorderStyle.NONE, right: BorderStyle.NONE, insideHorizontal: BorderStyle.NONE, insideVertical: BorderStyle.NONE }, rows }));
+      } else {
+        children.push(new Paragraph({ children: [new TextRun({ text: line, font, size })] }));
+      }
     });
 
     if (lampiran.length > 0) {
-      children.push(new Paragraph(""));
-      children.push(new Paragraph({ children: [new TextRun({ text: "Sebagai bahan pertimbangan, saya lampirkan:", font, size })] }));
-      lampiran.forEach((item, i) => {
-        children.push(new Paragraph({ children: [new TextRun({ text: `${i + 1}. ${item}`, font, size })] }));
-      });
+      children.push(new Paragraph(""), new Paragraph({ children: [new TextRun({ text: "Sebagai bahan pertimbangan, saya lampirkan:", font, size })] }));
+      lampiran.forEach((item, i) => children.push(new Paragraph({ children: [new TextRun({ text: `${i + 1}. ${item}`, font, size })] })));
     }
 
-    children.push(new Paragraph(""));
-    children.push(new Paragraph({ children: [new TextRun({ text: "Demikian surat lamaran ini saya sampaikan. Atas perhatian Bapak/Ibu, saya mengucapkan terima kasih.", font, size })] }));
-    children.push(new Paragraph(""));
-    children.push(new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: "Hormat saya,", font, size })] }));
-    children.push(new Paragraph(""));
-    children.push(new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: d.namaPelamar, font, size, bold: true })] }));
+    children.push(new Paragraph(""), new Paragraph({ children: [new TextRun({ text: "Demikian surat lamaran ini saya sampaikan. Atas perhatian Bapak/Ibu, saya mengucapkan terima kasih.", font, size })] }));
+    children.push(new Paragraph(""), new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: "Hormat saya,", font, size })] }));
+    children.push(new Paragraph(""), new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: d.namaPelamar, font, size, bold: true })] }));
 
-    const doc = new Document({
-      sections: [{
-        properties: { page: { margin: { top: 1440, bottom: 1440, left: 1440, right: 1440 } } },
-        children
-      }]
-    });
-
+    const doc = new Document({ sections: [{ properties: { page: { margin: { top: 1440, bottom: 1440, left: 1440, right: 1440 } } }, children }] });
     const blob = await Packer.toBlob(doc);
     saveAs(blob, `${fileName}.docx`);
   }
