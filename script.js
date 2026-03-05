@@ -64,11 +64,6 @@
   function sanitizeFileName(name) { return name.replace(/[\\/:*?"<>|]+/g, "-"); }
   function escapeHtml(str) { return str.replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 
-  function splitLampiranText(val) {
-    if (!val) return [];
-    return val.split(/[,\n]+/).map(s => s.trim()).filter(s => s !== "");
-  }
-
   function formatIdentitasBlock(pairs) {
     const max = Math.max(...pairs.map(p => p[0].length));
     return pairs.map(([l,v]) => `${l.padEnd(max)} : ${v}`);
@@ -99,7 +94,13 @@
     if (document.getElementById("includeCV").checked) list.push("Curriculum Vitae (CV)");
     if (document.getElementById("includePasFoto").checked) list.push("Pas Foto");
     if (document.getElementById("includeSKCK").checked) list.push("SKCK");
-    list.push(...splitLampiranText(document.getElementById("berkasPendukungText").value));
+    
+    const customList = document.getElementById("berkasPendukungText").value
+      .split(/[,\n]/) 
+      .map(s => s.trim())
+      .filter(s => s !== "");
+
+    list.push(...customList);
     return [...new Set(list)];
   }
 
@@ -148,13 +149,10 @@
     const d = getFormData();
     const lampiran = getLampiranArray();
     const body = TEMPLATES[d.template](d);
-
     const tglText = d.kotaSurat && d.tanggalSurat ? `${d.kotaSurat}, ${formatTanggalIndonesia(d.tanggalSurat)}` : "";
     
-    // LOGIKA HEADER PREVIEW
     let headerLeft = "";
     let subHeader = "";
-
     if (lampiran.length > 0) {
       headerLeft = `Lampiran : ${lampiran.length} Berkas`;
       subHeader = `<p>Perihal : Lamaran Pekerjaan</p>`;
@@ -180,7 +178,7 @@
       lampiran.forEach((item, i) => { html += `<p>${i + 1}. ${item}</p>`; });
     }
 
-    html += `<br><p>Demikian surat lamaran kerja ini. Atas perhatian Bapak/Ibu, saya mengucapkan terima kasih.</p>
+    html += `<br><p>Demikian surat lamaran ini saya sampaikan. Atas perhatian Bapak/Ibu, saya mengucapkan terima kasih.</p>
              <div style="text-align:right; margin-top:30px;">
                <p>Hormat saya,</p>
                <div style="height:60px;">(Tanda Tangan)</div>
@@ -204,11 +202,9 @@
     const lampiran = getLampiranArray();
 
     doc.setFont("courier", "normal");
-    doc.setFontSize(11);
-
+    doc.setFontSize(9);
     let y = 25;
 
-    // LOGIKA HEADER PDF
     if (d.kotaSurat && d.tanggalSurat) {
       doc.text(`${d.kotaSurat}, ${formatTanggalIndonesia(d.tanggalSurat)}`, pageWidth - margin, y, { align: "right" });
     }
@@ -225,7 +221,9 @@
     
     const headerLines = ["Kepada Yth,", d.namaPT, d.lokasiPT || "", "Di tempat", ""];
     const bodyLines = TEMPLATES[d.template](d);
-    const fullLines = headerLines.concat(bodyLines);
+    
+    // Gabungkan baris body dan kalimat penutup ke dalam satu array untuk di-wrap otomatis
+    let fullLines = headerLines.concat(bodyLines);
 
     fullLines.forEach(line => {
       const wrapped = doc.splitTextToSize(line, maxWidth);
@@ -247,7 +245,13 @@
     }
 
     y += 5;
-    doc.text("Demikian surat lamaran kerja ini. Atas perhatian Bapak/Ibu, saya mengucapkan terima kasih.", margin, y);
+    // PERBAIKAN: Gunakan splitTextToSize untuk kalimat penutup agar tidak tembus margin
+    const closingStatement = "Demikian surat lamaran ini saya sampaikan. Atas perhatian Bapak/Ibu, saya mengucapkan terima kasih.";
+    const wrappedClosing = doc.splitTextToSize(closingStatement, maxWidth);
+    wrappedClosing.forEach(line => {
+      doc.text(line, margin, y);
+      y += 5;
+    });
 
     const footerY = Math.max(y + 15, 240);
     doc.text("Hormat saya,", pageWidth - margin, footerY, { align: "right" });
@@ -302,9 +306,8 @@
     const lampiran = getLampiranArray();
     const body = TEMPLATES[d.template](d);
     const font = "Courier New";
-    const size = 22;
+    const size = 18;
 
-    // LOGIKA HEADER DOCX
     let headerLeftText = lampiran.length > 0 ? `Lampiran : ${lampiran.length} Berkas` : "Perihal   : Lamaran Pekerjaan";
     
     const children = [
@@ -344,7 +347,7 @@
     }
 
     children.push(new Paragraph(""));
-    children.push(new Paragraph({ children: [new TextRun({ text: "Demikian surat lamaran kerja ini. Atas perhatian Bapak/Ibu, saya mengucapkan terima kasih.", font, size })] }));
+    children.push(new Paragraph({ children: [new TextRun({ text: "Demikian surat lamaran ini saya sampaikan. Atas perhatian Bapak/Ibu, saya mengucapkan terima kasih.", font, size })] }));
     children.push(new Paragraph(""));
     children.push(new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: "Hormat saya,", font, size })] }));
     children.push(new Paragraph(""));
@@ -361,22 +364,14 @@
     saveAs(blob, `${fileName}.docx`);
   }
 
-  // =========================
-  // EVENTS
-  // =========================
   btnPreview.addEventListener("click", renderPreview);
-
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     badgeStatus.textContent = "Sedang Memproses...";
     const d = getFormData();
     const fileName = sanitizeFileName(`Lamaran - ${d.namaPelamar} - ${d.namaPT}`);
-
-    if (d.mode === "pdf") {
-      await exportPDF(d, fileName);
-    } else {
-      await exportDOCX(d, fileName);
-    }
+    if (d.mode === "pdf") await exportPDF(d, fileName);
+    else await exportDOCX(d, fileName);
     badgeStatus.textContent = "Selesai";
   });
 })();
