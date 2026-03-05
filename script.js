@@ -66,7 +66,7 @@
 
   function splitLampiranText(val) {
     if (!val) return [];
-    return val.split(/[, \n]+/).map(s => s.trim()).filter(s => s !== "");
+    return val.split(/[,\n]+/).map(s => s.trim()).filter(s => s !== "");
   }
 
   function formatIdentitasBlock(pairs) {
