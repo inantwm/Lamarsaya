@@ -247,7 +247,7 @@
     }
 
     y += 5;
-    doc.text("Demikian surat lamaran ini saya sampaikan, terima kasih.", margin, y);
+    doc.text("Demikian surat lamaran kerja ini. Atas perhatian Bapak/Ibu, saya mengucapkan terima kasih.", margin, y);
 
     const footerY = Math.max(y + 15, 240);
     doc.text("Hormat saya,", pageWidth - margin, footerY, { align: "right" });
@@ -344,7 +344,7 @@
     }
 
     children.push(new Paragraph(""));
-    children.push(new Paragraph({ children: [new TextRun({ text: "Demikian surat lamaran ini saya sampaikan, terima kasih.", font, size })] }));
+    children.push(new Paragraph({ children: [new TextRun({ text: "Demikian surat lamaran kerja ini. Atas perhatian Bapak/Ibu, saya mengucapkan terima kasih.", font, size })] }));
     children.push(new Paragraph(""));
     children.push(new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: "Hormat saya,", font, size })] }));
     children.push(new Paragraph(""));
