@@ -180,7 +180,7 @@
       lampiran.forEach((item, i) => { html += `<p>${i + 1}. ${item}</p>`; });
     }
 
-    html += `<br><p>Demikian surat lamaran ini saya sampaikan, terima kasih.</p>
+    html += `<br><p>Demikian surat lamaran kerja ini. Atas perhatian Bapak/Ibu, saya mengucapkan terima kasih.</p>
              <div style="text-align:right; margin-top:30px;">
                <p>Hormat saya,</p>
                <div style="height:60px;">(Tanda Tangan)</div>
