@@ -64,9 +64,10 @@
   function sanitizeFileName(name) { return name.replace(/[\\/:*?"<>|]+/g, "-"); }
   function escapeHtml(str) { return str.replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 
+  // Font Times New Roman bukan monospaced, jadi kita gunakan spasi manual untuk perataan titik dua
   function formatIdentitasBlock(pairs) {
     const max = Math.max(...pairs.map(p => p[0].length));
-    return pairs.map(([l,v]) => `${l.padEnd(max)} : ${v}`);
+    return pairs.map(([l,v]) => `${l.padEnd(max + 1)} : ${v}`);
   }
 
   function getFormData() {
@@ -94,12 +95,7 @@
     if (document.getElementById("includeCV").checked) list.push("Curriculum Vitae (CV)");
     if (document.getElementById("includePasFoto").checked) list.push("Pas Foto");
     if (document.getElementById("includeSKCK").checked) list.push("SKCK");
-    
-    const customList = document.getElementById("berkasPendukungText").value
-      .split(/[,\n]/) 
-      .map(s => s.trim())
-      .filter(s => s !== "");
-
+    const customList = document.getElementById("berkasPendukungText").value.split(/[,\n]/).map(s => s.trim()).filter(s => s !== "");
     list.push(...customList);
     return [...new Set(list)];
   }
@@ -131,19 +127,14 @@
       return ["Dengan hormat,", "", "Saya yang bertanda tangan di bawah ini:", ...identitas, "", `Dengan ini saya mengajukan lamaran kerja untuk posisi ${d.posisi} di ${d.namaPT}.`, "Saya terbiasa bekerja mengikuti SOP, menjaga kualitas, dan siap bekerja dengan sistem shift.", "", "Saya siap mengikuti proses interview sesuai jadwal yang ditentukan."];
     },
     operatoraja: (d) => {
-      const identitas = formatIdentitasBlock([
-        ["Nama", d.namaPelamar],
-        ["Tempat/Tanggal Lahir", `${d.tempatLahir}, ${formatTanggalIndonesia(d.tglLahir)}`],
-        ["Pendidikan Terakhir", d.pendidikan],
-        ["Alamat", d.alamatPelamar],
-      ]);
+      const identitas = formatIdentitasBlock([["Nama", d.namaPelamar], ["Tempat/Tanggal Lahir", `${d.tempatLahir}, ${formatTanggalIndonesia(d.tglLahir)}`], ["Pendidikan Terakhir", d.pendidikan], ["Alamat", d.alamatPelamar]]);
       return ["Dengan hormat,", "", `Berdasarkan informasi lowongan kerja yang saya peroleh pada tanggal ${formatTanggalIndonesia(d.tanggalSurat)}, bahwa perusahaan yang Bapak/Ibu pimpin membutuhkan tenaga kerja sebagai ${d.posisi}, dengan ini saya mengajukan lamaran.`, ...identitas, "", `Mengajukan permohonan untuk menjadi tenaga kerja di ${d.namaPT} sebagai ${d.posisi}.`];
     },
     fresh: (d) => ["Dengan hormat,", "", `Perkenalkan, saya ${d.namaPelamar} (${d.tempatLahir}, ${formatTanggalIndonesia(d.tglLahir)}), lulusan ${d.pendidikan}.`, `Saya bermaksud melamar posisi ${d.posisi} di ${d.namaPT}.`, "", "Saya memiliki kemauan belajar yang tinggi, cepat beradaptasi, dan siap berkembang bersama perusahaan.", "", `Kontak saya: ${d.telepon} | ${d.email}`]
   };
 
   // =========================
-  // PREVIEW
+  // PREVIEW (Browser default Times)
   // =========================
   function renderPreview() {
     const d = getFormData();
@@ -151,27 +142,20 @@
     const body = TEMPLATES[d.template](d);
     const tglText = d.kotaSurat && d.tanggalSurat ? `${d.kotaSurat}, ${formatTanggalIndonesia(d.tanggalSurat)}` : "";
     
-    let headerLeft = "";
-    let subHeader = "";
-    if (lampiran.length > 0) {
-      headerLeft = `Lampiran : ${lampiran.length} Berkas`;
-      subHeader = `<p>Perihal : Lamaran Pekerjaan</p>`;
-    } else {
-      headerLeft = `Perihal : Lamaran Pekerjaan`;
-      subHeader = "";
-    }
+    let headerLeft = lampiran.length > 0 ? `Lampiran : ${lampiran.length} Berkas` : `Perihal : Lamaran Pekerjaan`;
+    let subHeader = lampiran.length > 0 ? `<p>Perihal : Lamaran Pekerjaan</p>` : "";
 
-    let html = `<div style="display:flex; justify-content:space-between; font-family:Courier; font-size:12px; margin-bottom:10px;">
+    let html = `<div style="display:flex; justify-content:space-between; font-family:'Times New Roman', Times, serif; font-size:14px; margin-bottom:10px;">
                   <span>${headerLeft}</span>
                   <span>${tglText}</span>
                 </div>`;
     
-    html += `<div style="font-family:Courier; font-size:12px; line-height:1.2;">
+    html += `<div style="font-family:'Times New Roman', Times, serif; font-size:14px; line-height:1.3;">
               ${subHeader}
               <br>
               <p>Kepada Yth,<br>${d.namaPT}<br>${d.lokasiPT || ""}<br>Di tempat</p>
               <br>
-              <pre style="font-family:inherit; white-space:pre-wrap;">${escapeHtml(body.join("\n"))}</pre>`;
+              <pre style="font-family:inherit; white-space:pre-wrap; font-size:14px;">${escapeHtml(body.join("\n"))}</pre>`;
 
     if (lampiran.length > 0) {
       html += `<br><p>Sebagai bahan pertimbangan, saya lampirkan:</p>`;
@@ -191,7 +175,7 @@
   }
 
   // =========================
-  // EXPORT PDF
+  // EXPORT PDF (TIMES NEW ROMAN)
   // =========================
   async function exportPDF(d, fileName) {
     const { jsPDF } = window.jspdf;
@@ -201,8 +185,9 @@
     const maxWidth = pageWidth - (margin * 2);
     const lampiran = getLampiranArray();
 
-    doc.setFont("courier", "normal");
-    doc.setFontSize(12);
+    // Set Font ke Times
+    doc.setFont("times", "normal");
+    doc.setFontSize(11); // Ukuran standar surat formal
     let y = 25;
 
     if (d.kotaSurat && d.tanggalSurat) {
@@ -221,45 +206,42 @@
     
     const headerLines = ["Kepada Yth,", d.namaPT, d.lokasiPT || "", "Di tempat", ""];
     const bodyLines = TEMPLATES[d.template](d);
-    
-    // Gabungkan baris body dan kalimat penutup ke dalam satu array untuk di-wrap otomatis
     let fullLines = headerLines.concat(bodyLines);
 
     fullLines.forEach(line => {
       const wrapped = doc.splitTextToSize(line, maxWidth);
       wrapped.forEach(w => {
         doc.text(w, margin, y);
-        y += 5;
+        y += 6; // Spasi baris Times sedikit lebih lebar dibanding Courier
       });
-      if (line.trim() === "") y += 1.5;
+      if (line.trim() === "") y += 2;
     });
 
     if (lampiran.length > 0) {
       y += 2;
       doc.text("Sebagai bahan pertimbangan, saya lampirkan:", margin, y);
-      y += 5;
+      y += 6;
       lampiran.forEach((item, i) => {
         doc.text(`${i + 1}. ${item}`, margin, y);
-        y += 5;
+        y += 6;
       });
     }
 
-    y += 5;
-    // PERBAIKAN: Gunakan splitTextToSize untuk kalimat penutup agar tidak tembus margin
+    y += 2;
     const closingStatement = "Demikian surat lamaran ini saya sampaikan. Atas perhatian Bapak/Ibu, saya mengucapkan terima kasih.";
     const wrappedClosing = doc.splitTextToSize(closingStatement, maxWidth);
     wrappedClosing.forEach(line => {
       doc.text(line, margin, y);
-      y += 5;
+      y += 6;
     });
 
-    const footerY = Math.max(y + 15, 240);
+    const footerY = Math.max(y + 15, 235);
     doc.text("Hormat saya,", pageWidth - margin, footerY, { align: "right" });
     const sig = canvas.toDataURL("image/png");
     if (sig !== "data:,") {
       doc.addImage(sig, "PNG", pageWidth - margin - 35, footerY + 2, 30, 15);
     }
-    doc.setFont("courier", "bold");
+    doc.setFont("times", "bold");
     doc.text(d.namaPelamar, pageWidth - margin, footerY + 22, { align: "right" });
 
     // PDF LIB MERGE
@@ -299,14 +281,14 @@
   }
 
   // =========================
-  // EXPORT DOCX
+  // EXPORT DOCX (TIMES NEW ROMAN)
   // =========================
   async function exportDOCX(d, fileName) {
     const { Document, Packer, Paragraph, TextRun, AlignmentType } = window.docx;
     const lampiran = getLampiranArray();
     const body = TEMPLATES[d.template](d);
-    const font = "Courier New";
-    const size = 24;
+    const font = "Times New Roman";
+    const size = 24; // 12pt (docx.js uses half-points)
 
     let headerLeftText = lampiran.length > 0 ? `Lampiran : ${lampiran.length} Berkas` : "Perihal   : Lamaran Pekerjaan";
     
@@ -328,7 +310,7 @@
     children.push(
       new Paragraph(""),
       new Paragraph({ children: [new TextRun({ text: "Kepada Yth,", font, size })] }),
-      new Paragraph({ children: [new TextRun({ text: d.namaPT, font, size })] }),
+      new Paragraph({ children: [new TextRun({ text: d.namaPT, font, size, bold: true })] }),
       new Paragraph({ children: [new TextRun({ text: d.lokasiPT || "", font, size })] }),
       new Paragraph({ children: [new TextRun({ text: "Di tempat", font, size })] }),
       new Paragraph("")
