@@ -202,7 +202,7 @@
     const lampiran = getLampiranArray();
 
     doc.setFont("courier", "normal");
-    doc.setFontSize(9);
+    doc.setFontSize(12);
     let y = 25;
 
     if (d.kotaSurat && d.tanggalSurat) {
@@ -306,7 +306,7 @@
     const lampiran = getLampiranArray();
     const body = TEMPLATES[d.template](d);
     const font = "Courier New";
-    const size = 18;
+    const size = 24;
 
     let headerLeftText = lampiran.length > 0 ? `Lampiran : ${lampiran.length} Berkas` : "Perihal   : Lamaran Pekerjaan";
     
