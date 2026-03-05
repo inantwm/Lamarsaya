@@ -26,7 +26,6 @@
     }
   }
   resizeCanvas();
-  window.addEventListener("orientationchange", () => { setTimeout(resizeCanvas, 300); });
 
   let drawing = false;
   function getPosition(e) {
@@ -91,7 +90,6 @@
     return [...new Set(list)];
   }
 
-  // Objek identitas terpisah untuk diproses secara khusus (per baris)
   function getIdentitasData(d) {
     return [
       ["Nama", d.namaPelamar],
@@ -103,9 +101,6 @@
     ];
   }
 
-  // =========================
-  // TEMPLATES
-  // =========================
   const TEMPLATES = {
     formal: (d) => ["Dengan hormat,", "", "Saya yang bertanda tangan di bawah ini:", "[[IDENTITAS]]", "", `Dengan ini mengajukan permohonan untuk melamar pekerjaan di ${d.namaPT} sebagai ${d.posisi}.`, "Saya memiliki motivasi kerja yang tinggi, disiplin, dan mampu bekerja secara individu maupun tim.", "", "Besar harapan saya untuk dapat mengikuti proses seleksi lebih lanjut."],
     operator: (d) => ["Dengan hormat,", "", "Saya yang bertanda tangan di bawah ini:", "[[IDENTITAS]]", "", `Dengan ini saya mengajukan lamaran kerja untuk posisi ${d.posisi} di ${d.namaPT}.`, "Saya terbiasa bekerja mengikuti SOP, menjaga kualitas, dan siap bekerja dengan sistem shift.", "", "Saya siap mengikuti proses interview sesuai jadwal yang ditentukan."],
@@ -114,7 +109,7 @@
   };
 
   // =========================
-  // PREVIEW
+  // PREVIEW (Sesuai Garis Merah)
   // =========================
   function renderPreview() {
     const d = getFormData();
@@ -140,9 +135,9 @@
     templateLines.forEach(line => {
       if (line === "[[IDENTITAS]]") {
         idenData.forEach(item => {
-          html += `<div style="display: flex;">
-                     <div style="width: 150px;">${item[0]}</div>
-                     <div style="width: 15px;">:</div>
+          html += `<div style="display: flex; margin-bottom: 2px;">
+                     <div style="width: 140px;">${item[0]}</div>
+                     <div style="width: 20px; text-align: center;">:</div>
                      <div style="flex: 1;">${item[1]}</div>
                    </div>`;
         });
@@ -169,7 +164,7 @@
   }
 
   // =========================
-  // EXPORT PDF (TIMES NEW ROMAN + ALIGNED DOTS)
+  // EXPORT PDF (PRESISI KOORDINAT)
   // =========================
   async function exportPDF(d, fileName) {
     const { jsPDF } = window.jspdf;
@@ -183,10 +178,10 @@
     doc.setFontSize(11);
     let y = 25;
 
+    // 1. Header & Tanggal
     if (d.kotaSurat && d.tanggalSurat) {
       doc.text(`${d.kotaSurat}, ${formatTanggalIndonesia(d.tanggalSurat)}`, pageWidth - margin, y, { align: "right" });
     }
-
     if (lampiran.length > 0) {
       doc.text(`Lampiran : ${lampiran.length} Berkas`, margin, y);
       doc.text(`Perihal   : Lamaran Pekerjaan`, margin, y + 5);
@@ -196,6 +191,7 @@
       y += 10;
     }
     
+    // 2. Tujuan Surat
     doc.text("Kepada Yth,", margin, y);
     doc.text(d.namaPT, margin, y + 5);
     doc.text(d.lokasiPT || "", margin, y + 10);
@@ -204,15 +200,21 @@
 
     const bodyLines = TEMPLATES[d.template](d);
     const idenData = getIdentitasData(d);
-    const dotX = margin + 45; // Posisi X tetap untuk titik dua
+    
+    // POSISI X UNTUK TITIK DUA (Sama untuk semua baris)
+    const dotPositionX = margin + 42; 
+    const contentPositionX = dotPositionX + 4;
 
+    // 3. Body & Identitas
     bodyLines.forEach(line => {
       if (line === "[[IDENTITAS]]") {
         idenData.forEach(item => {
-          doc.text(item[0], margin, y);
-          doc.text(":", dotX, y);
-          const valLines = doc.splitTextToSize(item[1], pageWidth - dotX - margin - 5);
-          doc.text(valLines, dotX + 4, y);
+          doc.text(item[0], margin, y); // Nama Label
+          doc.text(":", dotPositionX, y); // Titik Dua di koordinat X yang tetap
+          
+          // Value (Handle jika teks terlalu panjang, seperti alamat)
+          const valLines = doc.splitTextToSize(item[1], pageWidth - contentPositionX - margin);
+          doc.text(valLines, contentPositionX, y);
           y += (valLines.length * 5.5);
         });
       } else if (line.trim() === "") {
@@ -224,6 +226,7 @@
       }
     });
 
+    // 4. Lampiran & Penutup
     if (lampiran.length > 0) {
       y += 5;
       doc.text("Sebagai bahan pertimbangan, saya lampirkan:", margin, y);
@@ -238,6 +241,7 @@
     const closing = doc.splitTextToSize("Demikian surat lamaran ini saya sampaikan. Atas perhatian Bapak/Ibu, saya mengucapkan terima kasih.", maxWidth);
     doc.text(closing, margin, y);
 
+    // 5. TTD
     const footerY = 240;
     doc.text("Hormat saya,", pageWidth - margin, footerY, { align: "right" });
     const sig = canvas.toDataURL("image/png");
@@ -245,18 +249,20 @@
     doc.setFont("times", "bold");
     doc.text(d.namaPelamar, pageWidth - margin, footerY + 22, { align: "right" });
 
-    // PDF MERGE
+    // 6. MERGE FILES
     const { PDFDocument } = window.PDFLib;
     if (PDFDocument) {
       const master = await PDFDocument.create();
       const letterDoc = await PDFDocument.load(doc.output("arraybuffer"));
       const pgs = await master.copyPages(letterDoc, letterDoc.getPageIndices());
       pgs.forEach(p => master.addPage(p));
-      const fileInputs = ["fileCV", "filePasFoto", "fileSKCK"];
+      
+      const fileIds = ["fileCV", "filePasFoto", "fileSKCK"];
       const files = [];
-      fileInputs.forEach(id => { if(document.getElementById(id).files[0]) files.push(document.getElementById(id).files[0]); });
+      fileIds.forEach(id => { if(document.getElementById(id).files[0]) files.push(document.getElementById(id).files[0]); });
       const extra = document.getElementById("filePendukung").files;
       if(extra) Array.from(extra).forEach(f => files.push(f));
+      
       for (const f of files) {
         const bytes = await f.arrayBuffer();
         const ext = f.name.split('.').pop().toLowerCase();
@@ -279,7 +285,7 @@
   }
 
   // =========================
-  // EXPORT DOCX (TABLE FOR ALIGNMENT)
+  // EXPORT DOCX (Sesuai Layout)
   // =========================
   async function exportDOCX(d, fileName) {
     const { Document, Packer, Paragraph, TextRun, AlignmentType, Table, TableRow, TableCell, WidthType, BorderStyle } = window.docx;
@@ -317,9 +323,9 @@
       if (line === "[[IDENTITAS]]") {
         const rows = idenData.map(item => new TableRow({
           children: [
-            new TableCell({ width: { size: 30, type: WidthType.PERCENTAGE }, borders: noBorder, children: [new Paragraph({ children: [new TextRun({ text: item[0], font, size })] })] }),
-            new TableCell({ width: { size: 5, type: WidthType.PERCENTAGE }, borders: noBorder, children: [new Paragraph({ children: [new TextRun({ text: ":", font, size })] })] }),
-            new TableCell({ width: { size: 65, type: WidthType.PERCENTAGE }, borders: noBorder, children: [new Paragraph({ children: [new TextRun({ text: item[1], font, size })] })] }),
+            new TableCell({ width: { size: 140, type: WidthType.DXA }, borders: noBorder, children: [new Paragraph({ children: [new TextRun({ text: item[0], font, size })] })] }),
+            new TableCell({ width: { size: 200, type: WidthType.DXA }, borders: noBorder, children: [new Paragraph({ children: [new TextRun({ text: ":", font, size })] })] }),
+            new TableCell({ width: { size: 3000, type: WidthType.DXA }, borders: noBorder, children: [new Paragraph({ children: [new TextRun({ text: item[1], font, size })] })] }),
           ]
         }));
         children.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, borders: { top: BorderStyle.NONE, bottom: BorderStyle.NONE, left: BorderStyle.NONE, right: BorderStyle.NONE, insideHorizontal: BorderStyle.NONE, insideVertical: BorderStyle.NONE }, rows }));
@@ -342,6 +348,9 @@
     saveAs(blob, `${fileName}.docx`);
   }
 
+  // =========================
+  // EVENTS
+  // =========================
   btnPreview.addEventListener("click", renderPreview);
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
