@@ -204,7 +204,7 @@
     const lampiran = getLampiranArray();
 
     doc.setFont("courier", "normal");
-    doc.setFontSize(9);
+    doc.setFontSize(11);
 
     let y = 25;
 
@@ -302,7 +302,7 @@
     const lampiran = getLampiranArray();
     const body = TEMPLATES[d.template](d);
     const font = "Courier New";
-    const size = 18;
+    const size = 22;
 
     // LOGIKA HEADER DOCX
     let headerLeftText = lampiran.length > 0 ? `Lampiran : ${lampiran.length} Berkas` : "Perihal   : Lamaran Pekerjaan";
