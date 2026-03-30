@@ -3,229 +3,208 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Generator Surat Lamaran (PDF/DOCX)</title>
+  <title>LamarSaya — Generator Surat Lamaran Modern</title>
   <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-  <div class="app">
+
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="nav-brand">
+        <a href="#">Lamar<span>Saya</span></a>
+      </div>
+      
+      <ul class="nav-menu">
+        <li><a href="https://owaimo.page.gd/dashboard.php" class="nav-link">Dashboard</a></li>
+        <li><a href="#" class="nav-link active">Generator</a></li>
+      </ul>
+
+      <div class="nav-user">
+        <a href="https://anantwm.page.gd/index.php" class="profile-link">
+          <img src="https://ui-avatars.com/api/?name=Anant+WM&background=2563eb&color=fff" alt="Profile" class="nav-avatar">
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="app-container">
     <header class="header">
-      <h1>Generator Surat Lamaran</h1>
-     <!---<p>Isi data → pilih template → pilih lampiran → download PDF gabungan / DOCX.</p>-->
+      <div class="header-content">
+        
+      </div>
     </header>
 
-    <main class="grid">
-      <section class="card">
-        <form id="formLamaran" class="form">
-          <h2>Data Pelamar</h2>
-
-          <div class="row">
-            <label for="namaPelamar">Nama lengkap</label>
-            <input id="namaPelamar" type="text" placeholder="Contoh: Raka Pratama" required />
+    <main class="main-grid">
+      <section class="form-section">
+        <form id="formLamaran" class="main-form">
+          
+          <div class="section-header">
+            <span class="badge-num">1</span>
+            <h2>Data Pribadi</h2>
           </div>
 
-          <div class="two">
-            <div class="row">
-              <label for="tempatLahir">Tempat lahir</label>
-              <input id="tempatLahir" type="text" placeholder="Contoh: Bandung" required />
+          <div class="input-row">
+            <label for="namaPelamar">Nama Lengkap</label>
+            <input id="namaPelamar" type="text" placeholder="Raka Pratama" required />
+          </div>
+
+          <div class="grid-2">
+            <div class="input-row">
+              <label for="tempatLahir">Tempat Lahir</label>
+              <input id="tempatLahir" type="text" placeholder="Bandung" required />
             </div>
-            <div class="row">
-              <label for="tglLahir">Tanggal lahir</label>
+            <div class="input-row">
+              <label for="tglLahir">Tanggal Lahir</label>
               <input id="tglLahir" type="date" required />
             </div>
           </div>
 
-          <div class="row">
-            <label for="pendidikan">Pendidikan terakhir</label>
-            <input id="pendidikan" type="text" placeholder="Contoh: SMK Teknik Mesin" required />
+          <div class="input-row">
+            <label for="pendidikan">Pendidikan Terakhir</label>
+            <input id="pendidikan" type="text" placeholder="SMK Teknik Mesin" required />
           </div>
 
-          <div class="row">
-            <label for="alamatPelamar">Alamat</label>
-            <textarea id="alamatPelamar" rows="3" placeholder="Contoh: Jl. Melati No. 10, Sukasari, Bandung" required></textarea>
+          <div class="input-row">
+            <label for="alamatPelamar">Alamat Lengkap</label>
+            <textarea id="alamatPelamar" rows="2" placeholder="Jl. Melati No. 10..." required></textarea>
           </div>
 
-          <div class="two">
-            <div class="row">
-              <label for="email">Alamat email</label>
-              <input id="email" type="email" placeholder="contoh@email.com" required />
+          <div class="grid-2">
+            <div class="input-row">
+              <label for="email">Email</label>
+              <input id="email" type="email" placeholder="nama@email.com" required />
             </div>
-            <div class="row">
-              <label for="telepon">Nomor telepon/HP</label>
-              <input id="telepon" type="tel" placeholder="08xxxxxxxxxx" required />
+            <div class="input-row">
+              <label for="telepon">WhatsApp</label>
+              <input id="telepon" type="tel" placeholder="0812..." required />
             </div>
           </div>
 
-          <hr class="sep" />
+          <div class="section-header mt-8">
+            <span class="badge-num">2</span>
+            <h2>Detail Perusahaan & TTD</h2>
+          </div>
 
-          <h2>Data Perusahaan</h2>
-
-          <div class="two">
-            <div class="row">
-              <label for="kotaSurat">Kota pada surat  (opsional)</label>
-              <input id="kotaSurat" type="text" placeholder="Contoh: Jakarta"  />
+          <div class="grid-2">
+            <div class="input-row">
+              <label for="kotaSurat">Kota Surat</label>
+              <input id="kotaSurat" type="text" placeholder="Jakarta" />
             </div>
-            <div class="row">
-              <label for="tanggalSurat">Tanggal surat (opsional)</label>
+            <div class="input-row">
+              <label for="tanggalSurat">Tanggal Surat</label>
               <input id="tanggalSurat" type="date" />
             </div>
           </div>
 
-          <div class="row">
-            <label for="namaPT">Nama PT/Perusahaan</label>
-            <input id="namaPT" type="text" placeholder="Contoh: PT Maju Sejahtera" required />
+          <div class="input-row">
+            <label for="namaPT">Nama Perusahaan</label>
+            <input id="namaPT" type="text" placeholder="PT Maju Bersama" required />
           </div>
 
-          <div class="row">
-            <label for="lokasiPT">Lokasi PT (opsional)</label>
-            <input id="lokasiPT" type="text" placeholder="Contoh: Jakarta Selatan" />
+          <div class="input-row">
+            <label for="posisi">Posisi Dilamar</label>
+            <input id="posisi" type="text" placeholder="Admin" required />
           </div>
 
-          <div class="row">
-            <label for="posisi">Posisi yang dilamar</label>
-            <input id="posisi" type="text" placeholder="Contoh: Admin Gudang" required />
+          <div class="input-row">
+            <label>Tanda Tangan Digital</label>
+            <div class="ttd-wrapper">
+              <canvas id="signaturePad"></canvas>
+              <button type="button" id="clearTtd" class="btn-clear">Hapus</button>
+            </div>
           </div>
 
-          <div class="row">
-  <label>Tanda Tangan Digital</label>
+          <div class="section-header mt-8">
+            <span class="badge-num">3</span>
+            <h2>Lampiran & Berkas</h2>
+          </div>
 
-  <div class="ttd-box">
-    <canvas id="signaturePad"></canvas>
-  </div>
-
-  <div class="ttd-actions">
-    <button type="button" id="clearTtd" class="btn ghost small">Hapus</button>
-  </div>
-
-  <p class="mini muted">
-    Gunakan mouse atau sentuhan layar untuk menandatangani.
-    Tanda tangan akan otomatis ditempatkan di kanan bawah surat.
-  </p>
-</div>
-
-          <hr class="sep" />
-
-          <h2>Template</h2>
-          <div class="row">
-            <label for="template">Pilih template surat</label>
-            <select id="template" required>
-              <option value="operatoraja" selected>Biasa</option>
-              <option value="formal" selected>Formal (Umum)</option>
-              <option value="operator">Operator Produksi / Pabrik</option>
-              <option value="fresh">Fresh Graduate (lebih “menjual” diri)</option>
+          <div class="input-row">
+            <label for="template">Gaya Bahasa</label>
+            <select id="template">
+              <option value="formal">Formal & Umum</option>
+              <option value="operator">Operator Pabrik</option>
+              <option value="fresh">Fresh Graduate</option>
             </select>
           </div>
 
-          <hr class="sep" />
-
-          <h2>Lampiran (Opsional)</h2>
-
-
-          <div class="toggle-grid">
-            <label class="toggle">
+          <div class="toggle-container">
+            <label class="toggle-item">
               <input type="checkbox" id="includeCV" />
-              <span class="track"><span class="thumb"></span></span>
-              <span class="txt">Sertakan CV</span>
+              <span class="slider"></span>
+              <span class="toggle-label">Sertakan CV</span>
             </label>
-
-            <label class="toggle">
+            <label class="toggle-item">
               <input type="checkbox" id="includePasFoto" />
-              <span class="track"><span class="thumb"></span></span>
-              <span class="txt">Sertakan Pas Foto</span>
+              <span class="slider"></span>
+              <span class="toggle-label">Sertakan Pas Foto</span>
             </label>
-
-            <label class="toggle">
+            <label class="toggle-item">
               <input type="checkbox" id="includeSKCK" />
-              <span class="track"><span class="thumb"></span></span>
-              <span class="txt">Sertakan SKCK</span>
+              <span class="slider"></span>
+              <span class="toggle-label">Sertakan SKCK</span>
             </label>
           </div>
 
-          <div class="upload card-soft">
-            <div class="row">
-              <label for="fileCV">Upload CV (PDF/JPG/PNG)</label>
-              <input id="fileCV" type="file" accept="application/pdf,image/jpeg,image/png" />
-              <p class="mini muted">Centang “Sertakan CV” agar ikut ditulis di surat & digabung ke PDF.</p>
+          <div class="upload-area card-inner">
+            <div class="input-row">
+              <label for="berkasLain">Daftar Berkas Lain (Pisahkan dengan koma)</label>
+              <input id="berkasLain" type="text" placeholder="Contoh: Fotokopi KTP, Ijazah" />
             </div>
-
-            <div class="row">
-              <label for="filePasFoto">Upload Pas Foto (JPG/PNG)</label>
-              <input id="filePasFoto" type="file" accept="image/jpeg,image/png" />
-              <p class="mini muted">Centang “Sertakan Pas Foto” agar ikut ditulis & digabung.</p>
-            </div>
-
-            <div class="row">
-              <label for="fileSKCK">Upload SKCK (PDF/JPG/PNG)</label>
-              <input id="fileSKCK" type="file" accept="application/pdf,image/jpeg,image/png" />
-              <p class="mini muted">Centang “Sertakan SKCK” agar ikut ditulis & digabung.</p>
-            </div>
-
-            <div class="row">
-              <label for="filePendukung">Upload Berkas Pendukung Lain (bisa banyak)</label>
-              <input id="filePendukung" type="file" multiple accept="application/pdf,image/jpeg,image/png" />
-              <p class="mini muted">File yang kamu upload di sini akan digabung ke PDF (kalau mode PDF).</p>
-            </div>
-
-            <div class="row">
-              <label for="berkasPendukungText">Daftar berkas (tulisan di surat, opsional)</label>
-              <input id="berkasPendukungText" type="text"
-                     placeholder="Contoh: Fotokopi KTP, Ijazah, Sertifikat, Transkrip Nilai" />
-              <p class="mini muted">Ini hanya daftar teks yang muncul di surat.</p>
+            <div class="input-row">
+              <label>Upload File (PDF/IMG)</label>
+              <input id="fileCV" type="file" class="file-input" />
+              <input id="filePasFoto" type="file" class="file-input mt-2" />
+              <input id="fileSKCK" type="file" class="file-input mt-2" />
+              <input id="filePendukung" type="file" class="file-input mt-2" multiple />
             </div>
           </div>
 
-          <hr class="sep" />
-
-          <h2>Ekspor</h2>
-          <div class="row">
-            <label for="modeEkspor">Mode ekspor</label>
-            <select id="modeEkspor" required>
-              <option value="pdf">PDF (gabungkan surat + lampiran upload)</option>
-              <option value="docx">DOCX (hanya surat + daftar lampiran)</option>
+          <div class="input-row mt-6">
+            <label for="modeEkspor">Format Ekspor</label>
+            <select id="modeEkspor">
+              <option value="pdf">PDF (Merge Files)</option>
+              <option value="docx">DOCX (Text Only)</option>
             </select>
-            <p class="mini muted">
-              DOCX tidak bisa merge file lampiran secara nyata di browser. Gunakan format PDF jika ingin file digabungkan beserta berkas lainnya.
-            </p>
           </div>
 
-          <div class="actions">
-            <button type="button" class="btn ghost" id="btnPreview">Preview</button>
-            <button type="submit" class="btn primary">Buat & Download</button>
+          <div class="form-footer">
+            <button type="button" class="btn-ghost" id="btnPreview">Preview</button>
+            <button type="submit" class="btn-primary">Download</button>
           </div>
-
-         <!--- <p class="hint">
-            Kamu bisa ubah isi template surat di <code>script.js</code> bagian <b>TEMPLATES</b>.
-          </p> --->
         </form>
       </section>
 
-      <section class="card">
-        <div class="preview-header">
-          <h2>Preview</h2>
-          <span class="badge" id="badgeStatus">Siap</span>
-        </div>
-        <div class="preview" id="previewArea">
-          <p class="muted">Klik <b>Preview</b> untuk melihat hasil surat.</p>
+      <section class="preview-section">
+        <div class="sticky-preview">
+          <div class="preview-header">
+            <h3>Draf Surat Resmi</h3>
+            <span class="badge-status" id="badgeStatus">Siap</span>
+          </div>
+          <div class="preview-content" id="previewArea">
+            <div class="preview-empty"></div>
+          </div>
         </div>
       </section>
     </main>
 
-    <footer class="footer">
-      <small>© <span id="year"></span> Created with ❤️</small>
-    </footer> 
+    <footer class="footer-modern">
+      <div class="footer-wrap">
+        <p>© 2026 LamarSaya. All rights reserved.</p>
+        <div class="footer-links">
+          <a href="#">Privacy</a>
+          <a href="#">Terms</a>
+          <a href="#">Contact</a>
+        </div>
+      </div>
+    </footer>
   </div>
 
-  <!-- Surat PDF -->
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-
-  <!-- Merge PDF -->
   <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-
-  <!-- DOCX -->
   <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js"></script>
-
-  <!-- Save -->
   <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
-
   <script src="script.js"></script>
 </body>
 </html>
