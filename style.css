@@ -139,3 +139,195 @@ input, select, textarea { width: 100%; padding: 0.75rem; border-radius: 8px; bor
 .mt-8 { margin-top: 2rem; }
 .mt-2 { margin-top: 0.5rem; }
 .mt-6 { margin-top: 1.5rem; }
+
+/* =========================================
+   1. GLOBAL REPAIR
+   ========================================= */
+:root {
+  --primary: #2563eb;
+  --bg-app: #f8fafc;
+  --border: #e2e8f0;
+  --radius: 12px;
+}
+
+* {
+  box-sizing: border-box; /* Sangat penting agar padding tidak menambah lebar elemen */
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--bg-app);
+  color: #1e293b;
+  overflow-x: hidden; /* Mencegah scroll horizontal pada body */
+  width: 100%;
+}
+
+/* =========================================
+   2. NAVBAR (Fixed Responsive)
+   ========================================= */
+.navbar {
+  background: #ffffff;
+  border-bottom: 1px solid var(--border);
+  padding: 0.75rem 1rem;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  width: 100%;
+}
+
+.nav-container {
+  max-width: 1300px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.nav-brand a {
+  text-decoration: none;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #1e293b;
+}
+
+.nav-brand span { color: var(--primary); }
+
+.nav-menu {
+  display: flex;
+  list-style: none;
+  gap: 1rem;
+}
+
+.nav-link {
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+/* Sembunyikan menu teks di mobile agar tidak memotong navbar */
+@media (max-width: 600px) {
+  .nav-menu { display: none; }
+  .nav-brand a { font-size: 1rem; }
+}
+
+.nav-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  display: block;
+}
+
+/* =========================================
+   3. MAIN GRID (Responsive)
+   ========================================= */
+.main-grid {
+  max-width: 1300px;
+  margin: 1.5rem auto;
+  padding: 0 1rem;
+  display: grid;
+  grid-template-columns: 1fr; /* Default mobile: 1 kolom */
+  gap: 1.5rem;
+  width: 100%;
+}
+
+@media (min-width: 1024px) {
+  .main-grid {
+    grid-template-columns: 450px 1fr; /* Desktop: Form kiri, Preview kanan */
+    align-items: start;
+  }
+}
+
+/* =========================================
+   4. FORM & PREVIEW CARD
+   ========================================= */
+.main-form, .sticky-preview {
+  background: #fff;
+  padding: 1.5rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  width: 100%; /* Pastikan tidak melebihi kontainer */
+}
+
+/* Input Row Repair */
+.input-row { margin-bottom: 1rem; width: 100%; }
+input, select, textarea {
+  width: 100%;
+  max-width: 100%; /* Cegah input melebar keluar */
+  display: block;
+}
+
+/* =========================================
+   5. PREVIEW CONTENT (Fluid Repair)
+   ========================================= */
+.sticky-preview {
+  position: relative; /* Default mobile: tidak sticky */
+}
+
+@media (min-width: 1024px) {
+  .sticky-preview {
+    position: sticky;
+    top: 80px; /* Jarak dari navbar */
+  }
+}
+
+.preview-content {
+  background: #fff;
+  border: 1px solid var(--border);
+  min-height: 500px;
+  padding: 20px; /* Padding lebih kecil di mobile */
+  border-radius: 6px;
+  width: 100%; /* Fluid */
+  max-width: 100%;
+  overflow-x: auto; /* Jika konten di dalam tetap memaksa lebar, akan muncul scroll di dalam box saja */
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.02);
+  
+  /* Font Resmi */
+  font-family: "Times New Roman", Times, serif !important;
+  color: #000 !important;
+}
+
+/* Padding lebih besar hanya untuk Desktop */
+@media (min-width: 768px) {
+  .preview-content {
+    padding: 40px 50px;
+    min-height: 750px;
+  }
+}
+
+/* Memastikan gambar TTD tidak merusak layout */
+.preview-content img {
+  max-width: 150px;
+  height: auto;
+}
+
+/* =========================================
+   6. MISC
+   ========================================= */
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr; /* Mobile: tumpuk */
+  gap: 10px;
+}
+
+@media (min-width: 480px) {
+  .grid-2 { grid-template-columns: 1fr 1fr; } /* Tablet ke atas: sampingan */
+}
+
+.ttd-wrapper {
+  width: 100%;
+  height: 150px;
+  border: 2px dashed var(--border);
+  border-radius: 8px;
+  touch-action: none; /* Penting untuk tanda tangan di layar sentuh */
+}
+
+.form-footer {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
