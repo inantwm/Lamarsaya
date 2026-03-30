@@ -15,40 +15,33 @@
         <a href="#">Lamar<span>Saya</span></a>
       </div>
       
-      <ul class="nav-menu">
-        <li><a href="https://owaimo.page.gd/dashboard.php" class="nav-link">Dashboard</a></li>
-        <li><a href="#" class="nav-link active">Generator</a></li>
-      </ul>
-
-      <div class="nav-user">
-        <a href="https://anantwm.page.gd/index.php" class="profile-link">
-          <img src="https://ui-avatars.com/api/?name=Anant+WM&background=2563eb&color=fff" alt="Profile" class="nav-avatar">
-        </a>
+      <div class="nav-user-area">
+        <div class="dropdown">
+          <button class="profile-trigger" id="profileBtn">
+            <img src="https://ui-avatars.com/api/?name=Anant+WM&background=2563eb&color=fff" alt="Profile" class="nav-avatar">
+            <span class="chevron">▼</span>
+          </button>
+          <div class="dropdown-content" id="myDropdown">
+            <div class="dropdown-header">Menu Utama</div>
+            <a href="https://owaimo.page.gd/dashboard.php">📊 Dashboard</a>
+            <a href="#" class="active">📝 Generator Surat</a>
+            <hr>
+            <a href="https://anantwm.page.gd/index.php">👤 Lihat Profil</a>
+          </div>
+        </div>
       </div>
     </div>
   </nav>
 
   <div class="app-container">
-    <header class="header">
-      <div class="header-content">
-        
-      </div>
-    </header>
-
     <main class="main-grid">
       <section class="form-section">
         <form id="formLamaran" class="main-form">
-          
-          <div class="section-header">
-            <span class="badge-num">1</span>
-            <h2>Data Pribadi</h2>
-          </div>
-
+          <div class="section-header"><h2>Data Pribadi</h2></div>
           <div class="input-row">
             <label for="namaPelamar">Nama Lengkap</label>
             <input id="namaPelamar" type="text" placeholder="Raka Pratama" required />
           </div>
-
           <div class="grid-2">
             <div class="input-row">
               <label for="tempatLahir">Tempat Lahir</label>
@@ -59,17 +52,14 @@
               <input id="tglLahir" type="date" required />
             </div>
           </div>
-
           <div class="input-row">
             <label for="pendidikan">Pendidikan Terakhir</label>
             <input id="pendidikan" type="text" placeholder="SMK Teknik Mesin" required />
           </div>
-
           <div class="input-row">
             <label for="alamatPelamar">Alamat Lengkap</label>
             <textarea id="alamatPelamar" rows="2" placeholder="Jl. Melati No. 10..." required></textarea>
           </div>
-
           <div class="grid-2">
             <div class="input-row">
               <label for="email">Email</label>
@@ -81,11 +71,7 @@
             </div>
           </div>
 
-          <div class="section-header mt-8">
-            <span class="badge-num">2</span>
-            <h2>Detail Perusahaan & TTD</h2>
-          </div>
-
+          <div class="section-header mt-8"><h2>Detail Perusahaan & TTD</h2></div>
           <div class="grid-2">
             <div class="input-row">
               <label for="kotaSurat">Kota Surat</label>
@@ -96,17 +82,14 @@
               <input id="tanggalSurat" type="date" />
             </div>
           </div>
-
           <div class="input-row">
             <label for="namaPT">Nama Perusahaan</label>
             <input id="namaPT" type="text" placeholder="PT Maju Bersama" required />
           </div>
-
           <div class="input-row">
             <label for="posisi">Posisi Dilamar</label>
             <input id="posisi" type="text" placeholder="Admin" required />
           </div>
-
           <div class="input-row">
             <label>Tanda Tangan Digital</label>
             <div class="ttd-wrapper">
@@ -115,11 +98,7 @@
             </div>
           </div>
 
-          <div class="section-header mt-8">
-            <span class="badge-num">3</span>
-            <h2>Lampiran & Berkas</h2>
-          </div>
-
+          <div class="section-header mt-8"><h2>Lampiran</h2></div>
           <div class="input-row">
             <label for="template">Gaya Bahasa</label>
             <select id="template">
@@ -128,50 +107,33 @@
               <option value="fresh">Fresh Graduate</option>
             </select>
           </div>
-
           <div class="toggle-container">
             <label class="toggle-item">
-              <input type="checkbox" id="includeCV" />
-              <span class="slider"></span>
-              <span class="toggle-label">Sertakan CV</span>
+              <input type="checkbox" id="includeCV" /><span class="slider"></span><span class="toggle-label">Sertakan CV</span>
             </label>
             <label class="toggle-item">
-              <input type="checkbox" id="includePasFoto" />
-              <span class="slider"></span>
-              <span class="toggle-label">Sertakan Pas Foto</span>
+              <input type="checkbox" id="includePasFoto" /><span class="slider"></span><span class="toggle-label">Sertakan Pas Foto</span>
             </label>
             <label class="toggle-item">
-              <input type="checkbox" id="includeSKCK" />
-              <span class="slider"></span>
-              <span class="toggle-label">Sertakan SKCK</span>
+              <input type="checkbox" id="includeSKCK" /><span class="slider"></span><span class="toggle-label">Sertakan SKCK</span>
             </label>
           </div>
-
           <div class="upload-area card-inner">
             <div class="input-row">
-              <label for="berkasLain">Daftar Berkas Lain (Pisahkan dengan koma)</label>
-              <input id="berkasLain" type="text" placeholder="Contoh: Fotokopi KTP, Ijazah" />
+              <label for="berkasLain">Berkas Lain (Pisahkan koma)</label>
+              <input id="berkasLain" type="text" placeholder="Ijazah, Transkrip" />
             </div>
             <div class="input-row">
-              <label>Upload File (PDF/IMG)</label>
-              <input id="fileCV" type="file" class="file-input" />
-              <input id="filePasFoto" type="file" class="file-input mt-2" />
-              <input id="fileSKCK" type="file" class="file-input mt-2" />
-              <input id="filePendukung" type="file" class="file-input mt-2" multiple />
+              <label>Upload File (CV/Foto/Lainnya)</label>
+              <input id="fileCV" type="file" class="file-input" accept="application/pdf,image/*" />
+              <input id="filePasFoto" type="file" class="file-input mt-2" accept="image/*" />
+              <input id="filePendukung" type="file" class="file-input mt-2" accept="application/pdf,image/*" multiple />
             </div>
-          </div>
-
-          <div class="input-row mt-6">
-            <label for="modeEkspor">Format Ekspor</label>
-            <select id="modeEkspor">
-              <option value="pdf">PDF (Merge Files)</option>
-              <option value="docx">DOCX (Text Only)</option>
-            </select>
           </div>
 
           <div class="form-footer">
             <button type="button" class="btn-ghost" id="btnPreview">Preview</button>
-            <button type="submit" class="btn-primary">Download</button>
+            <button type="submit" class="btn-primary">Download PDF</button>
           </div>
         </form>
       </section>
@@ -182,28 +144,14 @@
             <h3>Draf Surat Resmi</h3>
             <span class="badge-status" id="badgeStatus">Siap</span>
           </div>
-          <div class="preview-content" id="previewArea">
-            <div class="preview-empty"></div>
-          </div>
+          <div class="preview-content" id="previewArea"></div>
         </div>
       </section>
     </main>
-
-    <footer class="footer-modern">
-      <div class="footer-wrap">
-        <p>© 2026 LamarSaya. All rights reserved.</p>
-        <div class="footer-links">
-          <a href="#">Privacy</a>
-          <a href="#">Terms</a>
-          <a href="#">Contact</a>
-        </div>
-      </div>
-    </footer>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
   <script src="script.js"></script>
 </body>

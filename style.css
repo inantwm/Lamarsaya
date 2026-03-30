@@ -331,3 +331,146 @@ input, select, textarea {
   grid-template-columns: 1fr 1fr;
   gap: 10px;
 }
+
+:root {
+  --primary: #2563eb;
+  --bg-app: #f8fafc;
+  --border: #e2e8f0;
+  --radius: 12px;
+  --text-main: #1e293b;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--bg-app);
+  color: var(--text-main);
+  overflow-x: hidden;
+}
+
+/* NAVBAR & DROPDOWN */
+.navbar {
+  background: #ffffff;
+  border-bottom: 1px solid var(--border);
+  padding: 0.5rem 1rem;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  height: 64px;
+  display: flex;
+  align-items: center;
+}
+
+.nav-container {
+  width: 100%;
+  max-width: 1300px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nav-brand a { text-decoration: none; font-size: 1.25rem; font-weight: 800; color: #0f172a; }
+.nav-brand span { color: var(--primary); }
+
+.dropdown { position: relative; }
+.profile-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff;
+  border: 1px solid var(--border);
+  padding: 5px 10px;
+  border-radius: 50px;
+  cursor: pointer;
+}
+
+.nav-avatar { width: 32px; height: 32px; border-radius: 50%; }
+.chevron { font-size: 10px; color: #64748b; }
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 10px);
+  background: #fff;
+  min-width: 220px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+  overflow: hidden;
+  z-index: 1001;
+}
+
+.dropdown-content.show { display: block; animation: slideDown 0.2s ease-out; }
+@keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+.dropdown-header { padding: 12px; font-size: 11px; font-weight: 700; color: #94a3b8; background: #f8fafc; }
+.dropdown-content a { color: #1e293b; padding: 12px; text-decoration: none; display: block; font-size: 0.9rem; font-weight: 500; }
+.dropdown-content a:hover { background: #f1f5f9; color: var(--primary); }
+.dropdown-content hr { border: 0; border-top: 1px solid var(--border); }
+
+/* MAIN LAYOUT */
+.main-grid {
+  max-width: 1300px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+}
+
+@media (min-width: 1024px) {
+  .main-grid { grid-template-columns: 460px 1fr; align-items: start; }
+}
+
+.main-form, .sticky-preview {
+  background: #fff;
+  padding: 2rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
+.input-row { margin-bottom: 1.25rem; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+@media (max-width: 600px) { .grid-2 { grid-template-columns: 1fr; } }
+
+label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; }
+input, select, textarea {
+  width: 100% !important;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #f8fafc;
+  font-family: inherit;
+}
+
+/* TOGGLE */
+.toggle-container { display: flex; flex-direction: column; gap: 10px; margin: 1rem 0; }
+.toggle-item { display: flex; align-items: center; padding: 10px; background: #f8fafc; border-radius: 8px; cursor: pointer; border: 1px solid var(--border); }
+.toggle-item input { display: none; }
+.slider { width: 36px; height: 18px; background: #cbd5e1; border-radius: 20px; position: relative; margin-right: 12px; transition: 0.3s; }
+.slider:before { content: ""; position: absolute; width: 14px; height: 14px; background: #fff; border-radius: 50%; top: 2px; left: 2px; transition: 0.3s; }
+.toggle-item input:checked + .slider { background: var(--primary); }
+.toggle-item input:checked + .slider:before { transform: translateX(18px); }
+
+/* PREVIEW */
+.preview-content {
+  background: #fff;
+  border: 1px solid var(--border);
+  min-height: 800px;
+  padding: 50px 60px;
+  font-family: "Times New Roman", Times, serif !important;
+  line-height: 1.6;
+  color: #000;
+  overflow-x: auto;
+}
+@media (max-width: 600px) { .preview-content { padding: 30px 20px; } }
+
+.ttd-wrapper { border: 2px dashed var(--border); height: 150px; position: relative; touch-action: none; }
+#signaturePad { width: 100%; height: 100%; }
+
+.form-footer { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 1.5rem; }
+.btn-primary { background: var(--primary); color: #fff; border: none; padding: 12px; border-radius: 8px; font-weight: 700; cursor: pointer; }
+.btn-ghost { background: #f1f5f9; border: 1px solid var(--border); padding: 12px; border-radius: 8px; cursor: pointer; }
