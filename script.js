@@ -109,10 +109,12 @@
     
     let html = `<div style="font-family:'Times New Roman', serif; font-size:14px; color:#000;">
                 <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                  <span>${lampiran.length > 0 ? 'Lampiran : ' + lampiran.length + ' Berkas' : 'Perihal : Lamaran Pekerjaan'}</span>
+                  <div>
+                    <p style="margin:0">Perihal : Lamaran Pekerjaan</p>
+                    ${lampiran.length > 0 ? `<p style="margin:0">Lampiran : ${lampiran.length} Berkas</p>` : ''}
+                  </div>
                   <span>${tglText}</span>
                 </div>
-                ${lampiran.length > 0 ? '<p style="margin:0">Perihal : Lamaran Pekerjaan</p>' : ''}
                 <br><p>Kepada Yth,<br>${d.namaPT}<br>Di tempat</p><br>`;
 
     templateLines.forEach(line => {
@@ -131,8 +133,8 @@
 
     html += `<br><p style="text-align: justify;">Demikian surat lamaran ini saya sampaikan. Atas perhatian Bapak/Ibu, saya mengucapkan terima kasih.</p>
              <div style="text-align:right; margin-top:30px; padding-right:20px;">
-               <p>Hormat saya,</p>
-               <div style="margin-bottom:10px;"><img src="${canvas.toDataURL()}" style="height:60px; display:${canvas.toDataURL()==="data:,"?'none':'inline-block'}"></div>
+               <p style="margin-bottom:40px;">Hormat saya,</p>
+               <div style="margin-bottom:10px;"><img src="${canvas.toDataURL()}" style="height:60px; display:${canvas.toDataURL()==="data:,"?'none':'inline-block'}; margin-bottom:-20px;"></div>
                <p><b>${d.namaPelamar}</b></p>
              </div></div>`;
     previewArea.innerHTML = html;
@@ -158,10 +160,19 @@
     const pageWidth = doc.internal.pageSize.getWidth();
     const lampiran = getLampiranArray();
 
+    // TANGGAL
     if (d.kotaSurat && d.tanggalSurat) doc.text(`${d.kotaSurat}, ${formatTanggalIndonesia(d.tanggalSurat)}`, pageWidth - margin, y, { align: "right" });
-    doc.text(lampiran.length > 0 ? `Lampiran : ${lampiran.length} Berkas` : `Perihal : Lamaran Pekerjaan`, margin, y);
-    y += 15;
+    
+    // PERIHAL & LAMPIRAN (Urutan Diperbaiki)
+    doc.text(`Perihal : Lamaran Pekerjaan`, margin, y);
+    if (lampiran.length > 0) {
+        doc.text(`Lampiran : ${lampiran.length} Berkas`, margin, y + 6);
+        y += 20;
+    } else {
+        y += 15;
+    }
 
+    // TUJUAN
     doc.text("Kepada Yth,", margin, y);
     doc.text(d.namaPT, margin, y + 5);
     doc.text("Di tempat", margin, y + 10);
@@ -187,7 +198,7 @@
       lampiran.forEach((item, i) => { doc.text(`${i + 1}. ${item}`, margin, y); y += 6; });
     }
 
-    y += 10; doc.text("Demikian surat lamaran ini saya sampaikan. Terima kasih.", margin, y);
+    y += 10; doc.text(doc.splitTextToSize("Demikian surat lamaran ini saya sampaikan. Atas perhatian Bapak/Ibu, saya mengucapkan terima kasih.", 160), margin, y);
     y += 20; doc.text("Hormat saya,", 190, y, { align: "right" });
     if (canvas.toDataURL() !== "data:,") doc.addImage(canvas.toDataURL(), "PNG", 155, y + 2, 35, 15);
     doc.setFont("times", "bold"); doc.text(d.namaPelamar, 190, y + 25, { align: "right" });
@@ -222,7 +233,11 @@
     }
 
     const finalBytes = await master.save();
-    saveAs(new Blob([finalBytes], { type: "application/pdf" }), `Lamaran_${d.namaPelamar}.pdf`);
+    
+    // FORMAT NAMA FILE BARU
+    const newFileName = `Lamaran Pekerjaan - ${d.namaPelamar} - ${d.namaPT} - ${d.posisi}`;
+    saveAs(new Blob([finalBytes], { type: "application/pdf" }), `${sanitizeFileName(newFileName)}.pdf`);
+    
     badgeStatus.textContent = "Selesai";
   };
 })();
