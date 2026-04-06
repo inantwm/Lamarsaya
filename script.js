@@ -48,7 +48,10 @@
   canvas.ontouchstart = (e) => { drawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); };
   canvas.ontouchmove = (e) => { if (!drawing) return; e.preventDefault(); const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); };
   canvas.ontouchend = () => drawing = false;
-  clearBtn.onclick = () => ctx.clearRect(0, 0, canvas.width, canvas.height);
+  clearBtn.onclick = () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    saveToStorage(); // Trigger save even on clear
+  };
 
   // =========================
   // DATA & TEMPLATES (ORISINIL)
@@ -77,7 +80,12 @@
       namaPT: document.getElementById("namaPT").value.trim(),
       posisi: document.getElementById("posisi").value.trim(),
       template: document.getElementById("template").value,
-      berkasLain: document.getElementById("berkasLain").value
+      berkasLain: document.getElementById("berkasLain").value,
+      // Status Checkbox
+      includeCV: document.getElementById("includeCV").checked,
+      includePasFoto: document.getElementById("includePasFoto").checked,
+      includeSKCK: document.getElementById("includeSKCK").checked,
+      modeEkspor: document.getElementById("modeEkspor").value
     };
   }
 
@@ -101,7 +109,7 @@
   // =========================
   // PREVIEW (SINKRON ORISINIL)
   // =========================
-  btnPreview.onclick = () => {
+  const updatePreview = () => {
     const d = getFormData();
     const lampiran = getLampiranArray();
     const templateLines = TEMPLATES[d.template](d);
@@ -140,6 +148,8 @@
     previewArea.innerHTML = html;
     badgeStatus.textContent = "Preview Siap";
   };
+
+  btnPreview.onclick = updatePreview;
 
   // =========================
   // DOWNLOAD (ORISINIL PRESISI)
@@ -240,4 +250,80 @@
     
     badgeStatus.textContent = "Selesai";
   };
+
+  // =========================
+  // FITUR BARU: AUTO-SAVE & COOKIE CONSENT
+  // =========================
+  const cookieBanner = document.getElementById("cookieBanner");
+  const btnAccept = document.getElementById("btnAcceptCookie");
+  const btnDecline = document.getElementById("btnDeclineCookie");
+
+  const STORAGE_KEY = "lamarsaya_form_data";
+  const CONSENT_KEY = "lamarsaya_cookie_consent";
+
+  function saveToStorage() {
+    if (localStorage.getItem(CONSENT_KEY) !== "true") return;
+    const data = getFormData();
+    // Simpan juga gambar TTD jika ada
+    if (canvas.toDataURL() !== "data:,") {
+      data.ttdData = canvas.toDataURL();
+    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }
+
+  function loadFromStorage() {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (!saved) return;
+    
+    const d = JSON.parse(saved);
+    Object.keys(d).forEach(key => {
+      const el = document.getElementById(key);
+      if (el) {
+        if (el.type === "checkbox") {
+          el.checked = d[key];
+        } else {
+          el.value = d[key];
+        }
+      }
+    });
+
+    // Load TTD
+    if (d.ttdData) {
+      const img = new Image();
+      img.onload = () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.offsetWidth, canvas.offsetHeight);
+        updatePreview(); // Trigger preview setelah load
+      };
+      img.src = d.ttdData;
+    } else {
+      updatePreview();
+    }
+  }
+
+  // Event Listeners for Auto-save
+  form.addEventListener("input", saveToStorage);
+  canvas.addEventListener("mouseup", saveToStorage);
+  canvas.addEventListener("touchend", saveToStorage);
+
+  // Cookie Logic
+  if (!localStorage.getItem(CONSENT_KEY)) {
+    cookieBanner.style.display = "block";
+  } else if (localStorage.getItem(CONSENT_KEY) === "true") {
+    loadFromStorage();
+  }
+
+  btnAccept.onclick = () => {
+    localStorage.setItem(CONSENT_KEY, "true");
+    cookieBanner.style.display = "none";
+    saveToStorage();
+    updatePreview();
+  };
+
+  btnDecline.onclick = () => {
+    localStorage.setItem(CONSENT_KEY, "false");
+    localStorage.removeItem(STORAGE_KEY);
+    cookieBanner.style.display = "none";
+  };
+
 })();
