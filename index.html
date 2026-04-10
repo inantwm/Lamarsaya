@@ -28,26 +28,31 @@
       <div class="nav-brand">
         <a href="#">Lamar<span>Saya</span></a>
       </div>
-      
-      <div class="nav-user-area">
-        <div class="dropdown">
-          <button class="profile-trigger" id="profileBtn">
-            <img src="https://ui-avatars.com/api/?name=Anant+WM&background=2563eb&color=fff" alt="Profile" class="nav-avatar">
-            <span class="chevron">â–¼</span>
-          </button>
-          <div class="dropdown-content" id="myDropdown">
-            <div class="dropdown-header">Menu Utama</div>
-            <a href="https://owaimo.page.gd/dashboard.php">ðŸ“Š Dashboard</a>
-            <a href="#" class="active">ðŸ“ Generator Surat</a>
-            <hr>
-            <a href="https://anantwm.page.gd/index.php">ðŸ‘¤ Lihat Profil</a>
-          </div>
-        </div>
-      </div>
+
+      <!-- Nav Links Desktop -->
+      <ul class="nav-menu" id="navMenu">
+        <li><a href="#" class="nav-link active">&#127968; Dashboard</a></li>
+        <li><a href="https://applyinn.vercel.app/" class="nav-link" target="_blank">&#128196; Buat CV</a></li>
+        <li><a href="https://owaimo.page.gd/dashboard.php" class="nav-link" target="_blank">&#128203; Management Lamaran</a></li>
+        <li><a href="https://anantwm.page.gd/index.php" class="nav-link" target="_blank">&#128100; Lihat Profile</a></li>
+      </ul>
+
+      <!-- Hamburger (mobile only) -->
+      <button class="nav-hamburger" id="navHamburger" aria-label="Buka menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+
+    <!-- Mobile Drawer -->
+    <div class="nav-drawer" id="navDrawer">
+      <a href="#" class="nav-drawer-link active">&#127968; Dashboard</a>
+      <a href="https://applyinn.vercel.app/" class="nav-drawer-link" target="_blank">&#128196; Buat CV</a>
+      <a href="https://owaimo.page.gd/dashboard.php" class="nav-drawer-link" target="_blank">&#128203; Management Lamaran</a>
+      <a href="https://anantwm.page.gd/index.php" class="nav-drawer-link" target="_blank">&#128100; Lihat Profile</a>
     </div>
   </nav>
 
-  <div class="app-container">
+  <div class="app-container" style="overflow-x:hidden;max-width:100vw;">
     <main class="main-grid">
       <section class="form-section">
         <form id="formLamaran" class="main-form">

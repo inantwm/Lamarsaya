@@ -3,17 +3,6 @@
   const previewArea = document.getElementById("previewArea");
   const btnPreview = document.getElementById("btnPreview");
   const badgeStatus = document.getElementById("badgeStatus");
-  const profileBtn = document.getElementById("profileBtn");
-  const dropdownMenu = document.getElementById("myDropdown");
-
-  // 1. Dropdown Logic
-  if (profileBtn) {
-    profileBtn.onclick = (e) => {
-      e.stopPropagation();
-      dropdownMenu.classList.toggle("show");
-    };
-  }
-  window.onclick = () => dropdownMenu && dropdownMenu.classList.remove("show");
 
   // ── Auto-Save & Restore Form (localStorage) ───────────
   const SAVE_KEY = "lamarsaya_form_data";
