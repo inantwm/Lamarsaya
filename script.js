@@ -102,6 +102,67 @@
   canvas.ontouchend = () => drawing = false;
   clearBtn.onclick = () => ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+  // ── Signature Tab & Upload Logic ───────────────
+  let signatureMode = 'draw';
+  let uploadedSignatureData = '';
+  
+  const tabDraw = document.getElementById('tabDrawTtd');
+  const tabUpload = document.getElementById('tabUploadTtd');
+  const drawArea = document.getElementById('ttdDrawArea');
+  const uploadArea = document.getElementById('ttdUploadArea');
+  const uploadInput = document.getElementById('uploadTtdInput');
+  const uploadPreview = document.getElementById('uploadTtdPreview');
+  const clearUploadBtn = document.getElementById('clearUploadTtd');
+  const uploadLabel = document.getElementById('uploadTtdLabel');
+
+  if (tabDraw && tabUpload) {
+    tabDraw.onclick = () => {
+      signatureMode = 'draw';
+      tabDraw.style.background = '#eff6ff'; tabDraw.style.color = '#2563eb'; tabDraw.style.borderColor = '#2563eb';
+      tabUpload.style.background = 'transparent'; tabUpload.style.color = 'inherit'; tabUpload.style.borderColor = 'transparent';
+      drawArea.style.display = 'block'; uploadArea.style.display = 'none';
+      resizeCanvas();
+    };
+    tabUpload.onclick = () => {
+      signatureMode = 'upload';
+      tabUpload.style.background = '#eff6ff'; tabUpload.style.color = '#2563eb'; tabUpload.style.borderColor = '#2563eb';
+      tabDraw.style.background = 'transparent'; tabDraw.style.color = 'inherit'; tabDraw.style.borderColor = 'transparent';
+      uploadArea.style.display = 'flex'; drawArea.style.display = 'none';
+    };
+  }
+
+  if (uploadInput) {
+    uploadInput.onchange = (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        uploadedSignatureData = ev.target.result;
+        uploadPreview.src = uploadedSignatureData;
+        uploadPreview.style.display = 'block';
+        clearUploadBtn.style.display = 'block';
+        uploadLabel.style.display = 'none';
+      };
+      reader.readAsDataURL(file);
+    };
+  }
+
+  if (clearUploadBtn) {
+    clearUploadBtn.onclick = () => {
+      uploadedSignatureData = '';
+      uploadInput.value = '';
+      uploadPreview.style.display = 'none';
+      uploadPreview.src = '';
+      clearUploadBtn.style.display = 'none';
+      uploadLabel.style.display = 'flex';
+    };
+  }
+
+  const getSignatureData = () => {
+    if (signatureMode === 'draw') return canvas.toDataURL();
+    return uploadedSignatureData || "data:,";
+  };
+
   // 3. Helpers
   const fmtTgl = (iso) => {
     if (!iso) return "";
@@ -169,7 +230,7 @@
     html += `<br><p>Demikian surat lamaran ini saya sampaikan. Terima kasih.</p>
       <div style="text-align:right; margin-top:30px; padding-right:20px;">
         <p style="margin-bottom:40px;">Hormat saya,</p>
-        <div style="margin-bottom:10px;"><img src="${canvas.toDataURL()}" style="height:60px; display:${canvas.toDataURL()==="data:,"?'none':'inline-block'}"></div>
+        <div style="margin-bottom:10px;"><img src="${getSignatureData()}" style="height:60px; display:${getSignatureData()==="data:,"?'none':'inline-block'}"></div>
         <p><b>${d.nama}</b></p>
       </div></div>`;
     previewArea.innerHTML = html;
@@ -232,7 +293,7 @@
 
       y += 10; doc.text("Demikian surat lamaran ini saya sampaikan. Terima kasih.", margin, y);
       y += 20; doc.text("Hormat saya,", 190, y, {align:"right"});
-      if (canvas.toDataURL() !== "data:,") doc.addImage(canvas.toDataURL(), "PNG", 155, y+2, 35, 15);
+      if (getSignatureData() !== "data:,") doc.addImage(getSignatureData(), "PNG", 155, y+2, 35, 15);
       doc.setFont("times", "bold"); doc.text(d.nama, 190, y+25, {align:"right"});
 
       // Merge PDF
