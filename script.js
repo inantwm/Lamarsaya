@@ -3,23 +3,25 @@
   const previewArea = document.getElementById("previewArea");
   const btnPreview = document.getElementById("btnPreview");
   const badgeStatus = document.getElementById("badgeStatus");
-  
-  // Navbar Dropdown Logic
   const profileBtn = document.getElementById("profileBtn");
   const dropdownMenu = document.getElementById("myDropdown");
+
+  // 1. Dropdown Logic
   if (profileBtn) {
-    profileBtn.onclick = (e) => { e.stopPropagation(); dropdownMenu.classList.toggle("show"); };
+    profileBtn.onclick = (e) => {
+      e.stopPropagation();
+      dropdownMenu.classList.toggle("show");
+    };
   }
   window.onclick = () => dropdownMenu && dropdownMenu.classList.remove("show");
 
-  // =========================
-  // SIGNATURE CANVAS (ORISINIL)
-  // =========================
+  // 2. Signature Logic
   const canvas = document.getElementById("signaturePad");
   const ctx = canvas.getContext("2d");
   const clearBtn = document.getElementById("clearTtd");
 
   function resizeCanvas() {
+    if (!canvas) return;
     const ratio = window.devicePixelRatio || 1;
     const oldData = canvas.toDataURL();
     canvas.width = canvas.offsetWidth * ratio;
@@ -28,7 +30,7 @@
     ctx.lineWidth = 2; ctx.lineCap = "round"; ctx.strokeStyle = "#000";
     if (oldData !== "data:,") {
       const img = new Image();
-      img.onload = () => { ctx.drawImage(img, 0, 0, canvas.offsetWidth, canvas.offsetHeight); };
+      img.onload = () => ctx.drawImage(img, 0, 0, canvas.offsetWidth, canvas.offsetHeight);
       img.src = oldData;
     }
   }
@@ -42,288 +44,192 @@
     const y = (e.touches ? e.touches[0].clientY : e.clientY) - r.top;
     return { x, y };
   };
+
   canvas.onmousedown = (e) => { drawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); };
   canvas.onmousemove = (e) => { if (!drawing) return; e.preventDefault(); const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); };
   canvas.onmouseup = () => drawing = false;
   canvas.ontouchstart = (e) => { drawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); };
   canvas.ontouchmove = (e) => { if (!drawing) return; e.preventDefault(); const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); };
   canvas.ontouchend = () => drawing = false;
-  clearBtn.onclick = () => {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    saveToStorage(); // Trigger save even on clear
+  clearBtn.onclick = () => ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // 3. Helpers
+  const fmtTgl = (iso) => {
+    if (!iso) return "";
+    const [y, m, d] = iso.split("-").map(Number);
+    const bln = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+    return `${d} ${bln[m-1]} ${y}`;
   };
 
-  // =========================
-  // DATA & TEMPLATES (ORISINIL)
-  // =========================
-  function formatTanggalIndonesia(isoDate) {
-    if (!isoDate) return "";
-    const [y, m, d] = isoDate.split("-").map(Number);
-    const bulan = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
-    return `${d} ${bulan[m - 1]} ${y}`;
-  }
-
-  function sanitizeFileName(name) { return name.replace(/[\\/:*?"<>|]+/g, "-"); }
-  function escapeHtml(str) { return str ? str.replace(/</g,"&lt;").replace(/>/g,"&gt;") : ""; }
-
-  function getFormData() {
-    return {
-      namaPelamar: document.getElementById("namaPelamar").value.trim(),
-      tempatLahir: document.getElementById("tempatLahir").value.trim(),
-      tglLahir: document.getElementById("tglLahir").value,
-      pendidikan: document.getElementById("pendidikan").value.trim(),
-      alamatPelamar: document.getElementById("alamatPelamar").value.trim(),
-      email: document.getElementById("email").value.trim(),
-      telepon: document.getElementById("telepon").value.trim(),
-      kotaSurat: document.getElementById("kotaSurat").value.trim(),
-      tanggalSurat: document.getElementById("tanggalSurat").value,
-      namaPT: document.getElementById("namaPT").value.trim(),
-      posisi: document.getElementById("posisi").value.trim(),
-      template: document.getElementById("template").value,
-      berkasLain: document.getElementById("berkasLain").value,
-      // Status Checkbox
-      includeCV: document.getElementById("includeCV").checked,
-      includePasFoto: document.getElementById("includePasFoto").checked,
-      includeSKCK: document.getElementById("includeSKCK").checked,
-      modeEkspor: document.getElementById("modeEkspor").value
-    };
-  }
-
-  function getLampiranArray() {
-    const list = [];
+  const getLampiran = () => {
+    let list = [];
     if (document.getElementById("includeCV").checked) list.push("Curriculum Vitae (CV)");
     if (document.getElementById("includePasFoto").checked) list.push("Pas Foto");
     if (document.getElementById("includeSKCK").checked) list.push("SKCK");
     const lain = document.getElementById("berkasLain").value;
-    if (lain) list.push(...lain.split(',').map(s => s.trim()).filter(s => s !== ""));
-    return [...new Set(list)];
-  }
-
-  const TEMPLATES = {
-    formal: (d) => ["Dengan hormat,", "", "Saya yang bertanda tangan di bawah ini:", "[[IDENTITAS]]", "", `Dengan ini mengajukan permohonan untuk melamar pekerjaan di ${d.namaPT} sebagai ${d.posisi}.`, "Saya memiliki motivasi kerja yang tinggi, disiplin, dan mampu bekerja secara individu maupun tim.", "", "Besar harapan saya untuk dapat mengikuti proses seleksi lebih lanjut."],
-    operator: (d) => ["Dengan hormat,", "", "Saya yang bertanda tangan di bawah ini:", "[[IDENTITAS]]", "", `Dengan ini saya mengajukan lamaran kerja untuk posisi ${d.posisi} di ${d.namaPT}.`, "Saya terbiasa bekerja mengikuti SOP, menjaga kualitas, dan siap bekerja dengan sistem shift.", "", "Saya siap mengikuti proses interview sesuai jadwal yang ditentukan."],
-    operatoraja: (d) => ["Dengan hormat,", "", `Berdasarkan informasi lowongan kerja yang saya peroleh pada tanggal ${formatTanggalIndonesia(d.tanggalSurat)}, bahwa perusahaan yang Bapak/Ibu pimpin membutuhkan tenaga kerja sebagai ${d.posisi}, dengan ini saya mengajukan lamaran.`, "[[IDENTITAS]]", "", `Mengajukan permohonan untuk menjadi tenaga kerja di ${d.namaPT} sebagai ${d.posisi}.`],
-    fresh: (d) => ["Dengan hormat,", "", `Perkenalkan, saya ${d.namaPelamar} (${d.tempatLahir}, ${formatTanggalIndonesia(d.tglLahir)}), lulusan ${d.pendidikan}.`, `Saya bermaksud melamar posisi ${d.posisi} di ${d.namaPT}.`, "", "Saya memiliki kemauan belajar yang tinggi, cepat beradaptasi, dan siap berkembang bersama perusahaan.", "", `Kontak saya: ${d.telepon} | ${d.email}`]
+    if (lain) list = [...list, ...lain.split(',').map(s => s.trim()).filter(s => s !== "")];
+    return list;
   };
 
-  // =========================
-  // PREVIEW (SINKRON ORISINIL)
-  // =========================
-  const updatePreview = () => {
-    const d = getFormData();
-    const lampiran = getLampiranArray();
-    const templateLines = TEMPLATES[d.template](d);
-    const tglText = d.kotaSurat && d.tanggalSurat ? `${d.kotaSurat}, ${formatTanggalIndonesia(d.tanggalSurat)}` : "";
-    
-    let html = `<div style="font-family:'Times New Roman', serif; font-size:14px; color:#000;">
-                <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                  <div>
-                    <p style="margin:0">Perihal : Lamaran Pekerjaan</p>
-                    ${lampiran.length > 0 ? `<p style="margin:0">Lampiran : ${lampiran.length} Berkas</p>` : ''}
-                  </div>
-                  <span>${tglText}</span>
-                </div>
-                <br><p>Kepada Yth,<br>${d.namaPT}<br>Di tempat</p><br>`;
+  const TEMPLATES = {
+    formal: (d) => ["Dengan hormat,", "", "Saya yang bertanda tangan di bawah ini:", "[[ID]]", "", `Dengan ini mengajukan permohonan untuk melamar pekerjaan di ${d.pt} sebagai ${d.posisi}.`, "Saya memiliki motivasi kerja yang tinggi, disiplin, dan mampu bekerja secara individu maupun tim.", "", "Besar harapan saya untuk dapat mengikuti proses seleksi lebih lanjut."],
+    operator: (d) => ["Dengan hormat,", "", "Saya yang bertanda tangan di bawah ini:", "[[ID]]", "", `Mengajukan lamaran kerja sebagai ${d.posisi} di ${d.pt}.`, "Saya terbiasa bekerja mengikuti SOP, menjaga kualitas, dan siap bekerja dengan sistem shift.", "", "Saya siap mengikuti proses interview sesuai jadwal yang ditentukan."],
+    fresh: (d) => ["Dengan hormat,", "", `Perkenalkan, saya ${d.nama} (${d.tempat}, ${fmtTgl(d.tglLahir)}), lulusan ${d.pendidikan}.`, `Saya bermaksud melamar posisi ${d.posisi} di ${d.pt}.`, "", "Saya memiliki kemauan belajar yang tinggi, cepat beradaptasi, dan siap berkembang bersama perusahaan.", "", `Kontak saya: ${d.telepon} | ${d.email}`]
+  };
 
-    templateLines.forEach(line => {
-      if (line === "[[IDENTITAS]]") {
-        const idenData = [["Nama", d.namaPelamar], ["Tempat/Tgl Lahir", `${d.tempatLahir}, ${formatTanggalIndonesia(d.tglLahir)}`], ["Pendidikan", d.pendidikan], ["Alamat", d.alamatPelamar], ["Email", d.email], ["No. HP", d.telepon]];
-        idenData.forEach(item => {
-          html += `<div style="display: flex; margin-bottom: 2px;"><div style="width: 140px;">${item[0]}</div><div style="width: 20px; text-align: center;">:</div><div style="flex: 1;">${item[1]}</div></div>`;
-        });
-      } else { html += `<p style="margin: 0; text-align: justify;">${escapeHtml(line)}</p>`; }
+  // 4. Preview
+  btnPreview.onclick = () => {
+    const d = {
+      nama: document.getElementById("namaPelamar").value,
+      tempat: document.getElementById("tempatLahir").value,
+      tglLahir: document.getElementById("tglLahir").value,
+      pendidikan: document.getElementById("pendidikan").value,
+      alamat: document.getElementById("alamatPelamar").value,
+      email: document.getElementById("email").value,
+      telepon: document.getElementById("telepon").value,
+      kota: document.getElementById("kotaSurat").value,
+      tglSurat: document.getElementById("tanggalSurat").value,
+      pt: document.getElementById("namaPT").value,
+      posisi: document.getElementById("posisi").value,
+      template: document.getElementById("template").value
+    };
+    const lampiran = getLampiran();
+    const lines = TEMPLATES[d.template](d);
+    const tglSrt = d.kota && d.tglSurat ? `${d.kota}, ${fmtTgl(d.tglSurat)}` : "";
+
+    let html = `<div style="font-family:'Times New Roman', serif !important;">
+      <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
+        <div><p style="margin:0">Perihal : Lamaran Pekerjaan</p>${lampiran.length > 0 ? `<p style="margin:0">Lampiran : ${lampiran.length} Berkas</p>` : ''}</div>
+        <span>${tglSrt}</span>
+      </div>
+      <p style="margin-top:20px;">Kepada Yth,<br><b>HRD ${d.pt}</b><br>Di tempat</p><br>`;
+
+    lines.forEach(l => {
+      if (l === "[[ID]]") {
+        const iden = [["Nama", d.nama], ["Tempat/Tgl Lahir", `${d.tempat}, ${fmtTgl(d.tglLahir)}`], ["Pendidikan", d.pendidikan], ["Alamat", d.alamat], ["Email", d.email], ["No. HP", d.telepon]];
+        iden.forEach(i => { html += `<div style="display:flex; margin-bottom:2px;"><div style="width:130px">${i[0]}</div><div style="width:20px">:</div><div style="flex:1">${i[1]}</div></div>`; });
+      } else { html += `<p style="margin:0; text-align:justify;">${l}</p>`; }
     });
 
     if (lampiran.length > 0) {
-      html += `<br><p>Sebagai bahan pertimbangan, saya lampirkan:</p>`;
-      lampiran.forEach((item, i) => { html += `<p style="margin:0;">${i + 1}. ${item}</p>`; });
+      html += `<br><p style="margin-bottom:5px;">Sebagai bahan pertimbangan, saya lampirkan:</p>`;
+      lampiran.forEach((item, i) => { html += `<p style="margin:0">${i + 1}. ${item}</p>`; });
     }
 
-    html += `<br><p style="text-align: justify;">Demikian surat lamaran ini saya sampaikan. Atas perhatian Bapak/Ibu, saya mengucapkan terima kasih.</p>
-             <div style="text-align:right; margin-top:30px; padding-right:20px;">
-               <p style="margin-bottom:40px;">Hormat saya,</p>
-               <div style="margin-bottom:10px;"><img src="${canvas.toDataURL()}" style="height:60px; display:${canvas.toDataURL()==="data:,"?'none':'inline-block'}; margin-bottom:-20px;"></div>
-               <p><b>${d.namaPelamar}</b></p>
-             </div></div>`;
+    html += `<br><p>Demikian surat lamaran ini saya sampaikan. Terima kasih.</p>
+      <div style="text-align:right; margin-top:30px; padding-right:20px;">
+        <p style="margin-bottom:40px;">Hormat saya,</p>
+        <div style="margin-bottom:10px;"><img src="${canvas.toDataURL()}" style="height:60px; display:${canvas.toDataURL()==="data:,"?'none':'inline-block'}"></div>
+        <p><b>${d.nama}</b></p>
+      </div></div>`;
     previewArea.innerHTML = html;
-    badgeStatus.textContent = "Preview Siap";
   };
 
-  btnPreview.onclick = updatePreview;
-
-  // =========================
-  // DOWNLOAD (ORISINIL PRESISI)
-  // =========================
+  // 5. Download Logic
   form.onsubmit = async (e) => {
     e.preventDefault();
     badgeStatus.textContent = "Proses...";
-    const d = getFormData();
-    const { jsPDF } = window.jspdf;
-    const { PDFDocument } = window.PDFLib;
     
-    const doc = new jsPDF();
-    doc.setFont("times", "normal");
-    doc.setFontSize(11);
-    
-    let y = 30;
-    const margin = 25;
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const lampiran = getLampiranArray();
+    try {
+      const { jsPDF } = window.jspdf;
+      const { PDFDocument } = window.PDFLib;
+      
+      const d = {
+        nama: document.getElementById("namaPelamar").value,
+        tempat: document.getElementById("tempatLahir").value,
+        tglLahir: document.getElementById("tglLahir").value,
+        pendidikan: document.getElementById("pendidikan").value,
+        alamat: document.getElementById("alamatPelamar").value,
+        email: document.getElementById("email").value,
+        telepon: document.getElementById("telepon").value,
+        kota: document.getElementById("kotaSurat").value,
+        tglSurat: document.getElementById("tanggalSurat").value,
+        pt: document.getElementById("namaPT").value,
+        posisi: document.getElementById("posisi").value,
+        template: document.getElementById("template").value
+      };
 
-    // TANGGAL
-    if (d.kotaSurat && d.tanggalSurat) doc.text(`${d.kotaSurat}, ${formatTanggalIndonesia(d.tanggalSurat)}`, pageWidth - margin, y, { align: "right" });
-    
-    // PERIHAL & LAMPIRAN (Urutan Diperbaiki)
-    doc.text(`Perihal : Lamaran Pekerjaan`, margin, y);
-    if (lampiran.length > 0) {
-        doc.text(`Lampiran : ${lampiran.length} Berkas`, margin, y + 6);
-        y += 20;
-    } else {
-        y += 15;
-    }
+      const doc = new jsPDF();
+      doc.setFont("times", "normal");
+      doc.setFontSize(11);
+      
+      let y = 30;
+      const margin = 20;
+      const lampiran = getLampiran();
 
-    // TUJUAN
-    doc.text("Kepada Yth,", margin, y);
-    doc.text(d.namaPT, margin, y + 5);
-    doc.text("Di tempat", margin, y + 10);
-    y += 25;
+      // Buat Surat
+      if (d.kota && d.tglSurat) doc.text(`${d.kota}, ${fmtTgl(d.tglSurat)}`, 190, y, {align:"right"});
+      doc.text(`Perihal : Lamaran Pekerjaan`, margin, y);
+      if (lampiran.length > 0) { doc.text(`Lampiran : ${lampiran.length} Berkas`, margin, y+6); y += 20; } else { y += 15; }
 
-    TEMPLATES[d.template](d).forEach(line => {
-      if (line === "[[IDENTITAS]]") {
-        const idenData = [["Nama", d.namaPelamar], ["Tempat/Tgl Lahir", `${d.tempatLahir}, ${formatTanggalIndonesia(d.tglLahir)}`], ["Pendidikan", d.pendidikan], ["Alamat", d.alamatPelamar], ["Email", d.email], ["No. HP", d.telepon]];
-        idenData.forEach(item => {
-          doc.text(item[0], margin, y); doc.text(":", margin + 42, y); doc.text(item[1], margin + 46, y);
-          y += 6;
-        });
-      } else if (line === "") { y += 4; }
-      else { 
-        const split = doc.splitTextToSize(line, 160); 
-        doc.text(split, margin, y); 
-        y += (split.length * 6); 
+      doc.text("Kepada Yth,", margin, y);
+      doc.setFont("times", "bold"); doc.text(`HRD ${d.pt}`, margin, y+6);
+      doc.setFont("times", "normal"); doc.text("Di tempat", margin, y+12);
+      y += 25;
+
+      TEMPLATES[d.template](d).forEach(l => {
+        if(l === "[[ID]]") {
+          const iden = [["Nama", d.nama], ["Tempat/Tgl Lahir", `${d.tempat}, ${fmtTgl(d.tglLahir)}`], ["Pendidikan", d.pendidikan], ["Alamat", d.alamat], ["Email", d.email], ["No. HP", d.telepon]];
+          iden.forEach(i => { doc.text(i[0], margin, y); doc.text(":", 60, y); doc.text(i[1], 65, y); y += 6.5; });
+        } else if (l === "") { y += 4; }
+        else { const st = doc.splitTextToSize(l, 170); doc.text(st, margin, y); y += (st.length * 6); }
+      });
+
+      if (lampiran.length > 0) {
+        y += 5; doc.text("Sebagai bahan pertimbangan, saya lampirkan:", margin, y); y += 7;
+        lampiran.forEach((item, i) => { doc.text(`${i+1}. ${item}`, margin, y); y += 6; });
       }
-    });
 
-    if (lampiran.length > 0) {
-      y += 5; doc.text("Sebagai bahan pertimbangan, saya lampirkan:", margin, y); y += 6;
-      lampiran.forEach((item, i) => { doc.text(`${i + 1}. ${item}`, margin, y); y += 6; });
-    }
+      y += 10; doc.text("Demikian surat lamaran ini saya sampaikan. Terima kasih.", margin, y);
+      y += 20; doc.text("Hormat saya,", 190, y, {align:"right"});
+      if (canvas.toDataURL() !== "data:,") doc.addImage(canvas.toDataURL(), "PNG", 155, y+2, 35, 15);
+      doc.setFont("times", "bold"); doc.text(d.nama, 190, y+25, {align:"right"});
 
-    y += 10; doc.text(doc.splitTextToSize("Demikian surat lamaran ini saya sampaikan. Atas perhatian Bapak/Ibu, saya mengucapkan terima kasih.", 160), margin, y);
-    y += 20; doc.text("Hormat saya,", 190, y, { align: "right" });
-    if (canvas.toDataURL() !== "data:,") doc.addImage(canvas.toDataURL(), "PNG", 155, y + 2, 35, 15);
-    doc.setFont("times", "bold"); doc.text(d.namaPelamar, 190, y + 25, { align: "right" });
+      // Merge PDF
+      const master = await PDFDocument.create();
+      const letterBytes = await doc.output("arraybuffer");
+      const letterPdf = await PDFDocument.load(letterBytes);
+      const copiedPages = await master.copyPages(letterPdf, letterPdf.getPageIndices());
+      copiedPages.forEach(p => master.addPage(p));
 
-    // MERGE PDF
-    const master = await PDFDocument.create();
-    const letterBytes = await doc.output("arraybuffer");
-    const letterPdf = await PDFDocument.load(letterBytes);
-    (await master.copyPages(letterPdf, letterPdf.getPageIndices())).forEach(p => master.addPage(p));
+      // Ambil file yang ada
+      const fileInputs = ["fileCV", "filePasFoto", "fileSKCK"];
+      const multiInput = document.getElementById("filePendukung");
+      let filesToMerge = [];
 
-    // Handle Lampiran Files
-    const files = [];
-    ["fileCV", "filePasFoto", "fileSKCK"].forEach(id => {
-      const inp = document.getElementById(id);
-      if(inp && inp.files[0]) files.push(inp.files[0]);
-    });
-    const extra = document.getElementById("filePendukung").files;
-    if(extra) Array.from(extra).forEach(f => files.push(f));
-
-    for (const f of files) {
-      const bytes = await f.arrayBuffer();
-      const ext = f.name.split('.').pop().toLowerCase();
-      if(ext === "pdf") {
-        const src = await PDFDocument.load(bytes);
-        (await master.copyPages(src, src.getPageIndices())).forEach(p => master.addPage(p));
-      } else if(["jpg","jpeg","png"].includes(ext)) {
-        const img = ext === "png" ? await master.embedPng(bytes) : await master.embedJpg(bytes);
-        const p = master.addPage();
-        const sc = Math.min((p.getSize().width-40)/img.width, (p.getSize().height-40)/img.height);
-        p.drawImage(img, { x:(p.getSize().width-img.width*sc)/2, y:(p.getSize().height-img.height*sc)/2, width:img.width*sc, height:img.height*sc });
+      fileInputs.forEach(id => {
+        const inp = document.getElementById(id);
+        if (inp && inp.files[0]) filesToMerge.push(inp.files[0]);
+      });
+      if (multiInput && multiInput.files.length > 0) {
+        Array.from(multiInput.files).forEach(f => filesToMerge.push(f));
       }
-    }
 
-    const finalBytes = await master.save();
-    
-    // FORMAT NAMA FILE BARU
-    const newFileName = `Lamaran Pekerjaan - ${d.namaPelamar} - ${d.namaPT} - ${d.posisi}`;
-    saveAs(new Blob([finalBytes], { type: "application/pdf" }), `${sanitizeFileName(newFileName)}.pdf`);
-    
-    badgeStatus.textContent = "Selesai";
-  };
-
-  // =========================
-  // FITUR BARU: AUTO-SAVE & COOKIE CONSENT
-  // =========================
-  const cookieBanner = document.getElementById("cookieBanner");
-  const btnAccept = document.getElementById("btnAcceptCookie");
-  const btnDecline = document.getElementById("btnDeclineCookie");
-
-  const STORAGE_KEY = "lamarsaya_form_data";
-  const CONSENT_KEY = "lamarsaya_cookie_consent";
-
-  function saveToStorage() {
-    if (localStorage.getItem(CONSENT_KEY) !== "true") return;
-    const data = getFormData();
-    // Simpan juga gambar TTD jika ada
-    if (canvas.toDataURL() !== "data:,") {
-      data.ttdData = canvas.toDataURL();
-    }
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  }
-
-  function loadFromStorage() {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (!saved) return;
-    
-    const d = JSON.parse(saved);
-    Object.keys(d).forEach(key => {
-      const el = document.getElementById(key);
-      if (el) {
-        if (el.type === "checkbox") {
-          el.checked = d[key];
-        } else {
-          el.value = d[key];
+      for (const file of filesToMerge) {
+        const bytes = await file.arrayBuffer();
+        const ext = file.name.split('.').pop().toLowerCase();
+        if (ext === "pdf") {
+          const src = await PDFDocument.load(bytes);
+          const pgs = await master.copyPages(src, src.getPageIndices());
+          pgs.forEach(p => master.addPage(p));
+        } else if (["jpg","jpeg","png"].includes(ext)) {
+          const img = ext === "png" ? await master.embedPng(bytes) : await master.embedJpg(bytes);
+          const page = master.addPage();
+          const { width, height } = page.getSize();
+          const sc = Math.min((width - 40) / img.width, (height - 40) / img.height);
+          page.drawImage(img, { x: (width - img.width * sc) / 2, y: (height - img.height * sc) / 2, width: img.width * sc, height: img.height * sc });
         }
       }
-    });
 
-    // Load TTD
-    if (d.ttdData) {
-      const img = new Image();
-      img.onload = () => {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img, 0, 0, canvas.offsetWidth, canvas.offsetHeight);
-        updatePreview(); // Trigger preview setelah load
-      };
-      img.src = d.ttdData;
-    } else {
-      updatePreview();
+      const finalBytes = await master.save();
+      const blob = new Blob([finalBytes], { type: "application/pdf" });
+      saveAs(blob, `Lamaran_${d.nama.replace(/\s+/g, '_')}.pdf`);
+      
+      badgeStatus.textContent = "Selesai";
+    } catch (err) {
+      console.error(err);
+      alert("Terjadi kesalahan saat membuat PDF. Pastikan koneksi stabil.");
+      badgeStatus.textContent = "Gagal";
     }
-  }
-
-  // Event Listeners for Auto-save
-  form.addEventListener("input", saveToStorage);
-  canvas.addEventListener("mouseup", saveToStorage);
-  canvas.addEventListener("touchend", saveToStorage);
-
-  // Cookie Logic
-  if (!localStorage.getItem(CONSENT_KEY)) {
-    cookieBanner.style.display = "block";
-  } else if (localStorage.getItem(CONSENT_KEY) === "true") {
-    loadFromStorage();
-  }
-
-  btnAccept.onclick = () => {
-    localStorage.setItem(CONSENT_KEY, "true");
-    cookieBanner.style.display = "none";
-    saveToStorage();
-    updatePreview();
   };
-
-  btnDecline.onclick = () => {
-    localStorage.setItem(CONSENT_KEY, "false");
-    localStorage.removeItem(STORAGE_KEY);
-    cookieBanner.style.display = "none";
-  };
-
 })();
