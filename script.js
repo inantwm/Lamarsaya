@@ -15,6 +15,66 @@
   }
   window.onclick = () => dropdownMenu && dropdownMenu.classList.remove("show");
 
+  // ── Auto-Save & Restore Form (localStorage) ───────────
+  const SAVE_KEY = "lamarsaya_form_data";
+
+  const FORM_FIELDS = [
+    { id: "namaPelamar",   type: "text"     },
+    { id: "tempatLahir",   type: "text"     },
+    { id: "tglLahir",      type: "text"     },
+    { id: "pendidikan",    type: "text"     },
+    { id: "alamatPelamar", type: "textarea" },
+    { id: "email",         type: "text"     },
+    { id: "telepon",       type: "text"     },
+    { id: "kotaSurat",     type: "text"     },
+    { id: "tanggalSurat",  type: "text"     },
+    { id: "namaPT",        type: "text"     },
+    { id: "posisi",        type: "text"     },
+    { id: "berkasLain",    type: "text"     },
+    { id: "template",      type: "select"   },
+    { id: "includeCV",     type: "checkbox" },
+    { id: "includePasFoto",type: "checkbox" },
+    { id: "includeSKCK",   type: "checkbox" },
+  ];
+
+  function saveFormData() {
+    const data = {};
+    FORM_FIELDS.forEach(({ id, type }) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      data[id] = type === "checkbox" ? el.checked : el.value;
+    });
+    try {
+      localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+    } catch (e) { /* storage penuh / private mode */ }
+  }
+
+  function restoreFormData() {
+    let raw;
+    try { raw = localStorage.getItem(SAVE_KEY); } catch (e) { return; }
+    if (!raw) return;
+    try {
+      const data = JSON.parse(raw);
+      FORM_FIELDS.forEach(({ id, type }) => {
+        const el = document.getElementById(id);
+        if (!el || !(id in data)) return;
+        if (type === "checkbox") el.checked = data[id];
+        else el.value = data[id];
+      });
+    } catch (e) { /* data korup, abaikan */ }
+  }
+
+  // Pasang listener auto-save pada setiap field
+  FORM_FIELDS.forEach(({ id }) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener("input",  saveFormData);
+    el.addEventListener("change", saveFormData);
+  });
+
+  // Restore data saat load
+  restoreFormData();
+
   // 2. Signature Logic
   const canvas = document.getElementById("signaturePad");
   const ctx = canvas.getContext("2d");
