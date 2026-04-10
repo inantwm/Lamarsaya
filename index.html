@@ -1,10 +1,12 @@
 <!doctype html>
 <html lang="id">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>LamarSaya â€” Generator Surat Lamaran Modern</title>
-  <meta name="description" content="Buat surat lamaran kerja profesional dengan mudah dan cepat menggunakan LamarSaya." />
+  <title>LamarSaya - Generator Surat Lamaran Modern</title>
+  <meta name="description"
+    content="Buat surat lamaran kerja profesional dengan mudah dan cepat menggunakan LamarSaya." />
 
   <!-- PWA -->
   <link rel="manifest" href="manifest.json" />
@@ -21,6 +23,7 @@
   <link rel="stylesheet" href="style.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
+
 <body>
 
   <nav class="navbar">
@@ -33,8 +36,10 @@
       <ul class="nav-menu" id="navMenu">
         <li><a href="#" class="nav-link active">&#127968; Dashboard</a></li>
         <li><a href="https://applyinn.vercel.app/" class="nav-link" target="_blank">&#128196; Buat CV</a></li>
-        <li><a href="https://owaimo.page.gd/dashboard.php" class="nav-link" target="_blank">&#128203; Management Lamaran</a></li>
-        <li><a href="https://anantwm.page.gd/index.php" class="nav-link" target="_blank">&#128100; Lihat Profile</a></li>
+        <li><a href="https://owaimo.page.gd/dashboard.php" class="nav-link" target="_blank">&#128203; Management
+            Lamaran</a></li>
+        <li><a href="https://anantwm.page.gd/index.php" class="nav-link" target="_blank">&#128100; Lihat Profile</a>
+        </li>
       </ul>
 
       <!-- Hamburger (mobile only) -->
@@ -47,7 +52,8 @@
     <div class="nav-drawer" id="navDrawer">
       <a href="#" class="nav-drawer-link active">&#127968; Dashboard</a>
       <a href="https://applyinn.vercel.app/" class="nav-drawer-link" target="_blank">&#128196; Buat CV</a>
-      <a href="https://owaimo.page.gd/dashboard.php" class="nav-drawer-link" target="_blank">&#128203; Management Lamaran</a>
+      <a href="https://owaimo.page.gd/dashboard.php" class="nav-drawer-link" target="_blank">&#128203; Management
+        Lamaran</a>
       <a href="https://anantwm.page.gd/index.php" class="nav-drawer-link" target="_blank">&#128100; Lihat Profile</a>
     </div>
   </nav>
@@ -56,7 +62,9 @@
     <main class="main-grid">
       <section class="form-section">
         <form id="formLamaran" class="main-form">
-          <div class="section-header"><h2>Data Pribadi</h2></div>
+          <div class="section-header">
+            <h2>Data Pribadi</h2>
+          </div>
           <div class="input-row">
             <label for="namaPelamar">Nama Lengkap</label>
             <input id="namaPelamar" type="text" placeholder="Raka Pratama" required />
@@ -90,7 +98,9 @@
             </div>
           </div>
 
-          <div class="section-header mt-8"><h2>Detail Perusahaan & TTD</h2></div>
+          <div class="section-header mt-8">
+            <h2>Detail Perusahaan & TTD</h2>
+          </div>
           <div class="grid-2">
             <div class="input-row">
               <label for="kotaSurat">Kota Surat</label>
@@ -117,7 +127,9 @@
             </div>
           </div>
 
-          <div class="section-header mt-8"><h2>Lampiran</h2></div>
+          <div class="section-header mt-8">
+            <h2>Lampiran</h2>
+          </div>
           <div class="input-row">
             <label for="template">Gaya Bahasa</label>
             <select id="template">
@@ -129,13 +141,16 @@
           </div>
           <div class="toggle-container">
             <label class="toggle-item">
-              <input type="checkbox" id="includeCV" /><span class="slider"></span><span class="toggle-label">Sertakan CV</span>
+              <input type="checkbox" id="includeCV" /><span class="slider"></span><span class="toggle-label">Sertakan
+                CV</span>
             </label>
             <label class="toggle-item">
-              <input type="checkbox" id="includePasFoto" /><span class="slider"></span><span class="toggle-label">Sertakan Pas Foto</span>
+              <input type="checkbox" id="includePasFoto" /><span class="slider"></span><span
+                class="toggle-label">Sertakan Pas Foto</span>
             </label>
             <label class="toggle-item">
-              <input type="checkbox" id="includeSKCK" /><span class="slider"></span><span class="toggle-label">Sertakan SKCK</span>
+              <input type="checkbox" id="includeSKCK" /><span class="slider"></span><span class="toggle-label">Sertakan
+                SKCK</span>
             </label>
           </div>
           <div class="upload-area card-inner">
@@ -188,7 +203,7 @@
   <!-- Hamburger Menu Script -->
   <script>
     (function () {
-      var btn    = document.getElementById('navHamburger');
+      var btn = document.getElementById('navHamburger');
       var drawer = document.getElementById('navDrawer');
       if (!btn || !drawer) return;
 
@@ -217,4 +232,5 @@
     })();
   </script>
 </body>
+
 </html>
