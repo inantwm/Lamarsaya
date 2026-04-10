@@ -240,3 +240,14 @@ input, select, textarea {
 .mt-8 { margin-top: 2rem; }
 .mt-2 { margin-top: 0.5rem; }
 .card-inner { background: #f8fafc; border-radius: 10px; padding: 1rem; border: 1px solid var(--border); }
+/* ── HAMBURGER ANIMASI → X ─────────────────── */
+.nav-hamburger.is-open span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+.nav-hamburger.is-open span:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(0);
+}
+.nav-hamburger.is-open span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}

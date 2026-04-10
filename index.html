@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="id">
 <head>
   <meta charset="utf-8" />
@@ -184,6 +184,37 @@
           .catch(err => console.warn('[PWA] Registrasi SW gagal:', err));
       });
     }
+  </script>
+  <!-- Hamburger Menu Script -->
+  <script>
+    (function () {
+      var btn    = document.getElementById('navHamburger');
+      var drawer = document.getElementById('navDrawer');
+      if (!btn || !drawer) return;
+
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        drawer.classList.toggle('open');
+        // Animasi ikon hamburger → X
+        btn.classList.toggle('is-open');
+      });
+
+      // Tutup drawer jika klik di luar navbar
+      document.addEventListener('click', function (e) {
+        if (!e.target.closest('.navbar')) {
+          drawer.classList.remove('open');
+          btn.classList.remove('is-open');
+        }
+      });
+
+      // Tutup drawer jika salah satu link diklik
+      drawer.querySelectorAll('a').forEach(function (a) {
+        a.addEventListener('click', function () {
+          drawer.classList.remove('open');
+          btn.classList.remove('is-open');
+        });
+      });
+    })();
   </script>
 </body>
 </html>
