@@ -334,7 +334,7 @@
 
       const finalBytes = await master.save();
       const blob = new Blob([finalBytes], { type: "application/pdf" });
-      saveAs(blob, `Lamaran_${d.nama.replace(/\s+/g, '_')}.pdf`);
+      saveAs(blob, `lamaran pekerjaan_${d.nama}_${d.pt}_${d.posisi}.pdf`);
       
       badgeStatus.textContent = "Selesai";
     } catch (err) {
